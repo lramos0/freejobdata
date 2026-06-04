@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import "maplibre-gl/dist/maplibre-gl.css"
 import "./globals.css"
 import { OrganizationJsonLd, SiteNavigationJsonLd, WebSiteJsonLd } from "@/components/JsonLd"
 import { SiteHubNav } from "@/components/SiteHubNav"
@@ -30,6 +31,7 @@ export const metadata: Metadata = {
 
 const secondaryNavItems = [
   ["Reports", "/reports"],
+  ["Community", "/community"],
   ["Companies", "/companies"],
   ["Jobs", "/jobs"],
   ["Locations", "/locations"],

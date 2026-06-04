@@ -22,7 +22,8 @@ export const SITE_SITELINKS: SiteHub[] = [
   {
     label: "Community",
     path: "/community",
-    description: "News, press, methodology, and ways to participate in the open job data community."
+    description:
+      "OSINT-style hiring articles, Firebase-backed community roles, and a Deck.gl job posting location map."
   }
 ]
 

@@ -310,3 +310,459 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+.community-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.community-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.45fr);
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at 80% 20%, rgb(6 182 212 / 0.22), transparent 26rem),
+    linear-gradient(135deg, #0f172a, #102b5f 58%, #07111f);
+  border: 1px solid rgb(148 163 184 / 0.24);
+  border-radius: 2rem;
+  color: white;
+  overflow: hidden;
+}
+
+.community-hero .lede {
+  color: #cbd5e1;
+}
+
+.community-auth-card,
+.community-side-card,
+.community-feed-panel,
+.community-map-shell {
+  background: rgb(255 255 255 / 0.92);
+  border: 1px solid var(--line);
+  border-radius: 1.35rem;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 0.12);
+}
+
+.community-auth-card {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--ink);
+}
+
+.auth-warning {
+  color: #b45309;
+  line-height: 1.4;
+}
+
+.community-view-switch {
+  position: sticky;
+  top: 4.6rem;
+  z-index: 8;
+  display: flex;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.4rem;
+  background: #e2e8f0;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.community-view-switch button,
+.community-tabs button,
+.community-filter-bar button,
+.map-tools button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.community-view-switch button {
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 850;
+  text-transform: capitalize;
+}
+
+.community-view-switch button.active {
+  background: #0f172a;
+  color: white;
+}
+
+.community-intel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.38fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.community-feed-panel {
+  overflow: hidden;
+}
+
+.community-feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.community-tabs {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.community-tabs button {
+  position: relative;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 850;
+  font-size: 1.05rem;
+  padding: 0.8rem 0;
+}
+
+.community-tabs button.active {
+  color: var(--ink);
+}
+
+.community-tabs button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1.05rem;
+  height: 3px;
+  background: #c9b77f;
+}
+
+.community-tabs span {
+  margin-left: 0.3rem;
+  font-size: 0.8rem;
+}
+
+.community-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem;
+  background: #f3f2eb;
+  border-bottom: 1px solid var(--line);
+}
+
+.community-filter-bar button,
+.community-filter-bar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem;
+  background: #e9e8e0;
+  border-radius: 0.2rem;
+  color: #222;
+  font-weight: 700;
+}
+
+.community-article-list {
+  display: grid;
+}
+
+.community-article-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.3rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.community-article-card h3 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.article-source-row,
+.article-badge-row,
+.article-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.article-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.article-avatar.team,
+.intel-badge.team,
+.source-token.team {
+  background: #1c6ee8;
+}
+
+.article-avatar.community,
+.intel-badge.community,
+.source-token.community {
+  background: #8b5cf6;
+}
+
+.intel-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.intel-badge.dark {
+  background: #111827;
+}
+
+.intel-badge.light {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid var(--line);
+}
+
+.article-meta-row {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.article-meta-row a {
+  margin-left: auto;
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.community-detail-panel {
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 8.25rem;
+}
+
+.community-side-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.community-side-card dl,
+.map-inspector dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.community-side-card dt,
+.map-inspector dt {
+  color: var(--muted);
+}
+
+.community-side-card dd,
+.map-inspector dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.distribution-bar {
+  display: flex;
+  overflow: hidden;
+  border-radius: 0.2rem;
+  background: #e5e7eb;
+}
+
+.distribution-bar span {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 4rem;
+  padding: 0.55rem;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.distribution-bar span:first-child {
+  background: #1c6ee8;
+}
+
+.distribution-bar span:last-child {
+  background: #8b5cf6;
+}
+
+.source-columns {
+  display: flex;
+  gap: 0.4rem;
+  min-height: 10rem;
+  align-items: end;
+}
+
+.source-token {
+  display: inline-grid;
+  place-items: center;
+  width: 3rem;
+  min-height: 4.5rem;
+  border-radius: 999px;
+  color: white;
+  font-weight: 900;
+  writing-mode: vertical-rl;
+}
+
+.composer-card input,
+.composer-card textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  padding: 0.8rem;
+  font: inherit;
+}
+
+.composer-card input:disabled,
+.composer-card textarea:disabled,
+.composer-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.community-map-loading {
+  display: grid;
+  min-height: 34rem;
+  place-items: center;
+  background: #0f172a;
+  border-radius: 1.35rem;
+  color: white;
+}
+
+.community-map-shell {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  background: #0b1220;
+  color: white;
+}
+
+.community-map-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.community-map-toolbar h2 {
+  color: white;
+}
+
+.map-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.map-tools button {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 0.1);
+  color: white;
+  border: 1px solid rgb(255 255 255 / 0.16);
+}
+
+.community-map-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+}
+
+.community-map-canvas {
+  position: relative;
+  min-height: 36rem;
+  overflow: hidden;
+  border: 1px solid rgb(148 163 184 / 0.3);
+  border-radius: 1rem;
+}
+
+.community-map-canvas > div {
+  position: absolute !important;
+  inset: 0;
+}
+
+.map-crosshair {
+  position: absolute;
+  inset: 1rem;
+  pointer-events: none;
+  border: 1px solid rgb(6 182 212 / 0.18);
+  background-image:
+    linear-gradient(rgb(6 182 212 / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(6 182 212 / 0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  border-radius: 0.7rem;
+}
+
+.map-side-panel {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: 1rem;
+  background: rgb(15 23 42 / 0.88);
+  border: 1px solid rgb(148 163 184 / 0.24);
+  border-radius: 1rem;
+}
+
+.map-side-panel label {
+  display: flex;
+  gap: 0.55rem;
+  color: #cbd5e1;
+}
+
+.map-inspector {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(148 163 184 / 0.24);
+}
+
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-bottom-right {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .community-hero,
+  .community-intel-layout,
+  .community-map-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .community-detail-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .community-feed-header,
+  .community-map-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .community-tabs {
+    gap: 0.9rem;
+  }
+
+  .community-view-switch {
+    top: 7rem;
+  }
+}

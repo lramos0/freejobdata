@@ -21,6 +21,13 @@ NEXT_PUBLIC_SITE_URL=https://freejobdata.com
 JOBDATAPOOL_API_URL=https://jobdatapool.com/api/v1
 JOBDATAPOOL_INTERNAL_API_KEY=
 DATABASE_URL=
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 ```
 
 ## Included MVP
@@ -29,6 +36,16 @@ DATABASE_URL=
 - Dynamic metadata, canonical URLs, robots rules, sitemap generation, and JSON-LD.
 - Sample CSV downloads under `public/samples`.
 - Script stubs for syncing JobDataPool data and generating weekly reports.
+- Community intelligence page with Firebase Auth role detection and Deck.gl job-location map.
+
+## Community roles
+
+The community page reads Firebase ID-token custom claims client-side for display:
+
+- `role: "freejobdata_team"`, `role: "team"`, `freejobdataRole: "team"`, or `admin: true` renders the FreeJobData Team publisher view.
+- All other signed-in users render as community contributors.
+
+Server-side writes still need enforcement through Firebase Security Rules or a trusted API that verifies ID tokens.
 
 Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026-api.json` on R2). See [docs/analytics-ingest.md](docs/analytics-ingest.md).
 
