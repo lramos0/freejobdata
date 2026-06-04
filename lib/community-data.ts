@@ -1,5 +1,4 @@
 export type CommunityArticleType = "team" | "community"
-export type IntelligenceView = "default" | "map"
 
 export type CommunityArticle = {
   id: string

@@ -103,7 +103,7 @@ export const seedCompanies: Company[] = expandSeed(companyNames, 50, "growth-com
     slug,
     name,
     industry: category,
-    domain: `${slug}.com`,
+    domain: slug.includes("growth-company") ? "freejobdata.com" : `${slug}.com`,
     description: `${name} hiring activity, role demand, remote share, and location concentration.`
   })
 )

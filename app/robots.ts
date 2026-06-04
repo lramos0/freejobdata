@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/search", "/debug", "/internal"]
       }
     ],
-    sitemap: [absoluteUrl("/sitemap.xml"), absoluteUrl("/sitemap/0.xml"), absoluteUrl("/sitemap/1.xml"), absoluteUrl("/sitemap/2.xml")],
+    sitemap: absoluteUrl("/sitemap.xml"),
     host: siteUrl
   }
 }

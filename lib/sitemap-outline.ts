@@ -42,6 +42,7 @@ export function buildCoreSitemap(): MetadataRoute.Sitemap {
     entry("/about", { changeFrequency: "monthly", priority: 0.7 }),
     entry("/press", { changeFrequency: "monthly", priority: 0.7 }),
     entry("/news", { changeFrequency: "weekly", priority: 0.7 }),
+    entry("/maps", { changeFrequency: "weekly", priority: 0.8 }),
     entry("/api", { changeFrequency: "monthly", priority: 0.6 }),
     entry("/companies", { changeFrequency: "daily", priority: 0.85 }),
     entry("/jobs", { changeFrequency: "daily", priority: 0.85 }),

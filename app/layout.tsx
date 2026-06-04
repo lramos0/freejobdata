@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import "maplibre-gl/dist/maplibre-gl.css"
 import "./globals.css"
+import "./forum-port.css"
 import { OrganizationJsonLd, SiteNavigationJsonLd, WebSiteJsonLd } from "@/components/JsonLd"
 import { SiteHubNav } from "@/components/SiteHubNav"
 import { siteDescription, siteTitle } from "@/lib/seo"
@@ -29,15 +30,6 @@ export const metadata: Metadata = {
   }
 }
 
-const secondaryNavItems = [
-  ["Reports", "/reports"],
-  ["Community", "/community"],
-  ["Companies", "/companies"],
-  ["Jobs", "/jobs"],
-  ["Locations", "/locations"],
-  ["Methodology", "/methodology"]
-]
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -53,11 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="nav-cluster">
               <SiteHubNav />
               <nav className="nav-links" aria-label="Secondary navigation">
-                {secondaryNavItems.map(([label, href]) => (
-                  <Link key={href} href={href}>
-                    {label}
-                  </Link>
-                ))}
+                <Link href="/maps">Maps</Link>
                 <a href="https://jobdatapool.com/api">JobDataPool API</a>
               </nav>
             </div>
@@ -69,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/datasets">Datasets</Link>
               <Link href="/metrics">Metrics</Link>
               <Link href="/community">Community</Link>
+              <Link href="/maps">Maps</Link>
               <Link href="/about">About</Link>
               <Link href="/press">Press</Link>
               <Link href="/api">API</Link>

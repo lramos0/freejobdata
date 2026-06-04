@@ -13,12 +13,13 @@ import {
 } from "./data-seed"
 import { loadMetricsSnapshot, metricsSnapshotMeta } from "./load-metrics-snapshot"
 import { mergeDatasetCounts, stripEntityRecord, type HomeDashboard } from "./metrics-snapshot"
+import { withSafeCompanyDomains } from "./domain-fallbacks"
 
 const snapshot = loadMetricsSnapshot()
 
-export const companies: Company[] = snapshot?.catalog.companies?.length
-  ? snapshot.catalog.companies
-  : seedCompanies
+export const companies: Company[] = withSafeCompanyDomains(
+  snapshot?.catalog.companies?.length ? snapshot.catalog.companies : seedCompanies
+)
 
 export const roles: Role[] = snapshot?.catalog.roles?.length ? snapshot.catalog.roles : seedRoles
 
