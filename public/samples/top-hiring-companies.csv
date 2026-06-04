@@ -1,0 +1,3 @@
+job_id,company,role,location,remote_status,active_jobs,snapshot_date
+sample-1,Stripe,Product Manager,"New York, NY",hybrid,44,2026-06-04
+sample-2,Airbnb,Frontend Engineer,"San Francisco, CA",remote,35,2026-06-04

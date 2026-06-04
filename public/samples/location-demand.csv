@@ -1,0 +1,3 @@
+job_id,company,role,location,remote_status,active_jobs,snapshot_date
+sample-1,DoorDash,Data Scientist,"San Diego, CA",hybrid,18,2026-06-04
+sample-2,Databricks,Data Engineer,"Boston, MA",remote,23,2026-06-04

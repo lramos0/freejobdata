@@ -1,0 +1,3 @@
+job_id,company,role,location,remote_status,active_jobs,snapshot_date
+sample-1,Databricks,Data Engineer,"San Francisco, CA",hybrid,61,2026-06-04
+sample-2,Cloudflare,Security Engineer,"Austin, TX",remote,29,2026-06-04

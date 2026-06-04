@@ -1,0 +1,3 @@
+job_id,company,role,location,remote_status,active_jobs,snapshot_date
+sample-1,Figma,Frontend Engineer,"San Francisco, CA",hybrid,24,2026-06-04
+sample-2,Snowflake,Software Engineer,"Seattle, WA",hybrid,46,2026-06-04

@@ -1,0 +1,16 @@
+# FreeJobData — Next.js 16 on Netlify (OpenNext adapter, auto-detected).
+# https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[context.production.environment]
+  NEXT_PUBLIC_SITE_URL = "https://freejobdata.com"
+  JOBDATAPOOL_API_URL = "https://jobdatapool.com/api/v1"
+
+[context.deploy-preview.environment]
+  # NEXT_PUBLIC_SITE_URL omitted so lib/seo.ts uses Netlify's URL / DEPLOY_PRIME_URL.
