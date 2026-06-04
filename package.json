@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "sync": "tsx scripts/sync-jobdatapool.ts",
-    "reports": "tsx scripts/generate-weekly-reports.ts"
+    "reports": "tsx scripts/generate-weekly-reports.ts",
+    "ingest:local": "node scripts/run-ingest-local.js",
+    "fetch-metrics": "node scripts/fetch-metrics-snapshot.js"
   },
   "dependencies": {
     "next": "^16.2.7",

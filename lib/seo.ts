@@ -1,5 +1,12 @@
 import type { Metadata } from "next"
 
+/** Primary document title for Google and social previews (homepage + site default). */
+export const siteTitle =
+  "Open source job datasets, metrics, and social hub around the US job data pool"
+
+export const siteDescription =
+  "Open source job datasets, metrics, and social hub around the US job data pool. Explore free reports, hiring trends, and dataset samples powered by JobDataPool."
+
 type MetadataInput = {
   title: string
   description: string

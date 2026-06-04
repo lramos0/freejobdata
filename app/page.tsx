@@ -1,24 +1,19 @@
 import Link from "next/link"
 import { DataTable } from "@/components/DataTable"
 import { JobDataPoolCTA } from "@/components/JobDataPoolCTA"
+import { SiteHubCards } from "@/components/SiteHubNav"
 import { MetricCard } from "@/components/MetricCard"
-import { buildMetadata } from "@/lib/seo"
-import { companyRecords, datasets, reports, roleRecords } from "@/lib/data"
+import { buildMetadata, siteDescription, siteTitle } from "@/lib/seo"
+import { datasets, getHomeDashboard, reports } from "@/lib/data"
 
 export const metadata = buildMetadata({
-  title: "Free Job Market Data, Reports, and Hiring Trends",
-  description:
-    "FreeJobData publishes free job market datasets, hiring reports, company hiring trends, and role demand intelligence powered by JobDataPool.",
+  title: siteTitle,
+  description: siteDescription,
   path: "/"
 })
 
 export default function HomePage() {
-  const topCompanies = companyRecords.slice(0, 5).map((record) => ({
-    company: record.name,
-    "active jobs": record.metrics.activeJobs,
-    "new 7d": record.metrics.newJobs7d,
-    "remote share": `${record.metrics.remoteShare}%`
-  }))
+  const dashboard = getHomeDashboard()
 
   return (
     <>
@@ -29,26 +24,19 @@ export default function HomePage() {
           FreeJobData turns JobDataPool hiring data into public reports, dataset samples, company trend pages,
           role demand pages, and location intelligence built for citation and discovery.
         </p>
-        <div className="pill-row">
-          <Link className="button" href="/datasets">
-            Explore datasets
-          </Link>
-          <Link className="button secondary" href="/reports">
-            Read latest reports
-          </Link>
-        </div>
       </section>
 
+      <SiteHubCards />
+
       <section className="section grid">
-        <MetricCard label="Company pages" value="50+" detail="SEO-eligible hiring profiles" />
-        <MetricCard label="Role pages" value="50+" detail="Normalized job demand pages" />
-        <MetricCard label="Dataset pages" value={datasets.length} detail="CSV samples and schema" />
-        <MetricCard label="Reports" value={reports.length} detail="Market narratives and citations" />
+        {dashboard.hero_metrics.map((metric) => (
+          <MetricCard key={metric.label} label={metric.label} value={metric.value} detail={metric.detail} />
+        ))}
       </section>
 
       <section className="section">
         <h2>Top hiring trends</h2>
-        <DataTable rows={topCompanies} />
+        <DataTable rows={dashboard.top_hiring_trends} />
       </section>
 
       <section className="section grid">
@@ -73,14 +61,7 @@ export default function HomePage() {
 
       <section className="section">
         <h2>Fast-growing roles</h2>
-        <DataTable
-          rows={roleRecords.slice(0, 6).map((record) => ({
-            role: record.name,
-            "active jobs": record.metrics.activeJobs,
-            "WoW growth": `${record.metrics.growthWoW}%`,
-            "median salary": `$${record.metrics.medianSalary?.toLocaleString()}`
-          }))}
-        />
+        <DataTable rows={dashboard.fast_growing_roles} />
       </section>
 
       <section className="section">

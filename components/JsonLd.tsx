@@ -1,4 +1,5 @@
-import { absoluteUrl, siteUrl } from "@/lib/seo"
+import { absoluteUrl, siteDescription, siteTitle, siteUrl } from "@/lib/seo"
+import { SITE_SITELINKS } from "@/lib/site-hubs"
 import type { Dataset, Report } from "@/lib/types"
 
 function JsonLdScript({ data }: { data: Record<string, unknown> }) {
@@ -19,8 +20,53 @@ export function OrganizationJsonLd() {
         "@context": "https://schema.org",
         "@type": "Organization",
         name: "FreeJobData",
+        description: siteDescription,
+        slogan: siteTitle,
         url: siteUrl,
         sameAs: ["https://jobdatapool.com"]
+      }}
+    />
+  )
+}
+
+/** WebSite + primary navigation — supports Google sitelink discovery for Datasets, Metrics, Community. */
+export function WebSiteJsonLd() {
+  return (
+    <JsonLdScript
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "FreeJobData",
+        description: siteDescription,
+        url: siteUrl,
+        inLanguage: "en-US",
+        publisher: {
+          "@type": "Organization",
+          name: "FreeJobData"
+        },
+        hasPart: SITE_SITELINKS.map((hub) => ({
+          "@type": "WebPage",
+          name: hub.label,
+          description: hub.description,
+          url: absoluteUrl(hub.path)
+        }))
+      }}
+    />
+  )
+}
+
+export function SiteNavigationJsonLd() {
+  return (
+    <JsonLdScript
+      data={{
+        "@context": "https://schema.org",
+        "@graph": SITE_SITELINKS.map((hub, index) => ({
+          "@type": "SiteNavigationElement",
+          position: index + 1,
+          name: hub.label,
+          description: hub.description,
+          url: absoluteUrl(hub.path)
+        }))
       }}
     />
   )

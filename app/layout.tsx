@@ -1,24 +1,35 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import "./globals.css"
-import { OrganizationJsonLd } from "@/components/JsonLd"
+import { OrganizationJsonLd, SiteNavigationJsonLd, WebSiteJsonLd } from "@/components/JsonLd"
+import { SiteHubNav } from "@/components/SiteHubNav"
+import { siteDescription, siteTitle } from "@/lib/seo"
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://freejobdata.com"),
   title: {
-    default: "FreeJobData | Free Job Market Data, Reports, and Hiring Trends",
+    default: siteTitle,
     template: "%s | FreeJobData"
   },
-  description:
-    "FreeJobData publishes free job market datasets, hiring reports, and labor market intelligence powered by JobDataPool.",
+  description: siteDescription,
+  openGraph: {
+    title: siteTitle,
+    description: siteDescription,
+    siteName: "FreeJobData",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription
+  },
   alternates: {
     canonical: "/"
   }
 }
 
-const navItems = [
+const secondaryNavItems = [
   ["Reports", "/reports"],
-  ["Datasets", "/datasets"],
   ["Companies", "/companies"],
   ["Jobs", "/jobs"],
   ["Locations", "/locations"],
@@ -30,28 +41,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <OrganizationJsonLd />
+        <WebSiteJsonLd />
+        <SiteNavigationJsonLd />
         <div className="site-shell">
           <header className="nav">
             <Link className="brand" href="/">
               FreeJobData
             </Link>
-            <nav className="nav-links" aria-label="Primary navigation">
-              {navItems.map(([label, href]) => (
-                <Link key={href} href={href}>
-                  {label}
-                </Link>
-              ))}
-              <a href="https://jobdatapool.com/api">JobDataPool API</a>
-            </nav>
+            <div className="nav-cluster">
+              <SiteHubNav />
+              <nav className="nav-links" aria-label="Secondary navigation">
+                {secondaryNavItems.map(([label, href]) => (
+                  <Link key={href} href={href}>
+                    {label}
+                  </Link>
+                ))}
+                <a href="https://jobdatapool.com/api">JobDataPool API</a>
+              </nav>
+            </div>
           </header>
           <main className="main">{children}</main>
           <footer className="footer">
             <strong>Data powered by JobDataPool.</strong>
             <div className="footer-links">
+              <Link href="/datasets">Datasets</Link>
+              <Link href="/metrics">Metrics</Link>
+              <Link href="/community">Community</Link>
               <Link href="/about">About</Link>
               <Link href="/press">Press</Link>
               <Link href="/api">API</Link>
-              <Link href="/methodology">Methodology</Link>
               <a href="https://jobdatapool.com">JobDataPool</a>
             </div>
           </footer>

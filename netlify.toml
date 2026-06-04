@@ -2,15 +2,32 @@
 # https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/
 
 [build]
-  command = "npm run build"
+  command = "npm --prefix netlify/functions install --omit=dev && node scripts/fetch-metrics-snapshot.js && npm run build"
   publish = ".next"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions."ingest-job-data-pool"]
+  timeout = 26
+  schedule = "@daily"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [context.production.environment]
   NEXT_PUBLIC_SITE_URL = "https://freejobdata.com"
-  JOBDATAPOOL_API_URL = "https://jobdatapool.com/api/v1"
 
 [context.deploy-preview.environment]
   # NEXT_PUBLIC_SITE_URL omitted so lib/seo.ts uses Netlify's URL / DEPLOY_PRIME_URL.
+
+[[redirects]]
+  from = "/data/metrics-snapshot.json"
+  to = "/.netlify/functions/ingest-job-data-pool?view=snapshot"
+  status = 200
+
+[[redirects]]
+  from = "/data/metrics-manifest.json"
+  to = "/.netlify/functions/ingest-job-data-pool?view=manifest"
+  status = 200

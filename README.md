@@ -2,6 +2,10 @@
 
 FreeJobData is a Next.js App Router site for publishing free job market datasets, SEO landing pages, and research reports powered by JobDataPool.
 
+## App structure
+
+Routes are grouped by sitelink hub under `app/(datasets)`, `app/(metrics)`, and `app/(community)` — see [app/README.md](app/README.md). Public URLs are unchanged (`/datasets`, `/metrics`, `/community`, etc.).
+
 ## Getting started
 
 ```bash
@@ -26,7 +30,11 @@ DATABASE_URL=
 - Sample CSV downloads under `public/samples`.
 - Script stubs for syncing JobDataPool data and generating weekly reports.
 
-Replace `lib/data.ts` with database/API-backed queries as JobDataPool endpoints are finalized.
+Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026-api.json` on R2). See [docs/analytics-ingest.md](docs/analytics-ingest.md).
+
+```bash
+npm run ingest:local   # write data/metrics-snapshot.json for local dev / validation
+```
 
 ## Deploy on Netlify
 
@@ -56,6 +64,8 @@ Set these under **Site configuration → Environment variables** (production sco
 | `NEXT_PUBLIC_SITE_URL` | `https://freejobdata.com` | Also set in `netlify.toml` for production context. |
 | `JOBDATAPOOL_API_URL` | `https://jobdatapool.com/api/v1` | Used by `npm run sync`, not the static MVP build. |
 | `JOBDATAPOOL_INTERNAL_API_KEY` | *(optional)* | Bearer token if JobDataPool requires it. |
+
+Ingest source URL is hardcoded in `netlify/functions/_shared/fetch-listings.js` (no env var).
 
 Deploy previews pick up Netlify’s `URL` / `DEPLOY_PRIME_URL` for canonicals when `NEXT_PUBLIC_SITE_URL` is unset.
 

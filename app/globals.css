@@ -53,6 +53,26 @@ a {
   letter-spacing: -0.04em;
 }
 
+.nav-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.nav-sitelinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.nav-sitelinks a:hover {
+  color: var(--brand);
+}
+
 .nav-links,
 .footer-links {
   display: flex;
@@ -60,6 +80,10 @@ a {
   gap: 0.85rem;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.site-hub-cards .card h3 {
+  margin: 0.35rem 0 0.5rem;
 }
 
 .nav a:hover,

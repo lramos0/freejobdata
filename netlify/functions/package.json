@@ -1,0 +1,9 @@
+{
+  "name": "freejobdata-functions",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Netlify function dependencies for FreeJobData",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.4"
+  }
+}
