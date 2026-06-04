@@ -43,6 +43,29 @@ export type MetricsSnapshotFile = {
     industries: SnapshotEntityRecord[]
   }
   datasets?: { slug: string; recordCount: number; updatedAt: string }[]
+  entity_breakdowns?: Record<
+    string,
+    {
+      primaryRows: Record<string, string | number>[]
+      secondaryRows: Record<string, string | number>[]
+      relatedLinks: { label: string; href: string }[]
+    }
+  >
+  community?: {
+    location_signals: Array<{
+      id: string
+      name: string
+      coordinates: [number, number]
+      activeJobs: number
+      newJobs7d: number
+      remoteShare: number
+      signalScore: number
+      dominantRole: string
+      industry: string
+    }>
+    articles: Array<Record<string, unknown>>
+  }
+  listing_previews?: Record<string, Record<string, string | number>[]>
 }
 
 export function stripEntityRecord(record: SnapshotEntityRecord): EntityRecord {

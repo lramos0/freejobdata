@@ -13,9 +13,12 @@ Defined in `netlify/functions/_shared/fetch-listings.js` as `LISTINGS_API_JSON_U
 ## Run locally (no Netlify)
 
 ```bash
-npm run ingest:local
+npm run ingest:local   # writes data/metrics-snapshot.json
+npm run ensure-metrics # fetch from Netlify or fall back to local ingest
 npm run dev
 ```
+
+The static site hydrates from `data/metrics-snapshot.json` (entity metrics, dashboards, map signals, dataset sample rows, and per-page breakdown tables).
 
 Writes:
 

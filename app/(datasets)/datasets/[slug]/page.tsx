@@ -8,6 +8,7 @@ import { MetricCard } from "@/components/MetricCard"
 import { DataTable } from "@/components/DataTable"
 import { buildMetadata } from "@/lib/seo"
 import { datasets } from "@/lib/data"
+import { getDatasetPreviewRows } from "@/lib/metrics-hydration"
 
 export function generateStaticParams() {
   return datasets.map((dataset) => ({ slug: dataset.slug }))
@@ -30,22 +31,7 @@ export default function DatasetPage({ params }: { params: { slug: string } }) {
     notFound()
   }
 
-  const sampleRows = [
-    {
-      company: "OpenAI",
-      role: "Machine Learning Engineer",
-      location: "San Francisco, CA",
-      remote_status: "hybrid",
-      active_jobs: 42
-    },
-    {
-      company: "Stripe",
-      role: "Software Engineer",
-      location: "New York, NY",
-      remote_status: "remote",
-      active_jobs: 38
-    }
-  ]
+  const sampleRows = getDatasetPreviewRows(dataset.slug)
 
   return (
     <>

@@ -6,6 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { buildMetadata } from "@/lib/seo"
 import { companyRecords, getHomeDashboard, roleRecords } from "@/lib/data"
 import { metricsSnapshotMeta } from "@/lib/load-metrics-snapshot"
+import { hasMetricsSnapshot } from "@/lib/metrics-hydration"
 
 export const metadata = buildMetadata({
   title: "Job Market Metrics",
@@ -33,12 +34,14 @@ export default function MetricsPage() {
           Explore active job counts, weekly growth, remote share, and role demand computed from the JobDataPool listings
           feed. Updated when the ingest cron runs.
         </p>
-        {snapshotMeta ? (
+        {snapshotMeta && hasMetricsSnapshot() ? (
           <p className="muted">
             Snapshot generated {new Date(snapshotMeta.generated_at).toLocaleString()} ·{" "}
-            {snapshotMeta.global.active_jobs.toLocaleString()} active listings
+            {snapshotMeta.global.active_jobs.toLocaleString()} active listings (ingest-job-data-pool)
           </p>
-        ) : null}
+        ) : (
+          <p className="muted">Run npm run ingest:local to hydrate metrics from JobDataPool.</p>
+        )}
       </section>
 
       <section className="section grid">

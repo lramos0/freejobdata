@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import DeckGL from "@deck.gl/react"
 import type { PickingInfo } from "@deck.gl/core"
 import { Map } from "react-map-gl/maplibre"
-import { jobPostingLocationSignals, type JobPostingLocationSignal } from "@/lib/community-data"
+import { getJobPostingLocationSignals, type JobPostingLocationSignalSnapshot } from "@/lib/metrics-hydration"
 import { JobIntelPulseLayer } from "./JobIntelPulseLayer"
 
 const initialViewState = {
@@ -16,6 +16,7 @@ const initialViewState = {
 }
 
 export function CommunityMap() {
+  const jobPostingLocationSignals = getJobPostingLocationSignals()
   const [selectedLocationId, setSelectedLocationId] = useState(jobPostingLocationSignals[0]?.id)
   const selectedLocation = jobPostingLocationSignals.find((location) => location.id === selectedLocationId)
 
@@ -27,7 +28,7 @@ export function CommunityMap() {
         selectedLocationId
       })
     ],
-    [selectedLocationId]
+    [jobPostingLocationSignals, selectedLocationId]
   )
 
   return (
@@ -50,14 +51,14 @@ export function CommunityMap() {
             initialViewState={initialViewState}
             controller
             layers={layers}
-            getTooltip={({ object }: PickingInfo<JobPostingLocationSignal>) =>
+            getTooltip={({ object }: PickingInfo<JobPostingLocationSignalSnapshot>) =>
               object
                 ? {
                     html: `<strong>${object.name}</strong><br/>${object.activeJobs.toLocaleString()} active jobs<br/>${object.newJobs7d} new jobs, 7d<br/>Dominant role: ${object.dominantRole}`
                   }
                 : null
             }
-            onClick={({ object }: PickingInfo<JobPostingLocationSignal>) => {
+            onClick={({ object }: PickingInfo<JobPostingLocationSignalSnapshot>) => {
               if (object) {
                 setSelectedLocationId(object.id)
               }

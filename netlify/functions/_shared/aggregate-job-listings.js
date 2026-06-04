@@ -1,4 +1,6 @@
 const { SEO_THRESHOLDS } = require("./seo-thresholds")
+const { bump, buildRows, createCrossTabs, topCounts } = require("./cross-tabs")
+const { resolveCoordinates } = require("./location-coordinates")
 
 const ENTITY_LIMITS = {
   company: 50,
@@ -199,6 +201,195 @@ function rollupTable(buckets, limit = 25) {
     }))
 }
 
+function nameLookupFromMaps(maps, entityType) {
+  const lookup = new Map()
+  for (const bucket of maps[entityType].values()) {
+    lookup.set(bucket.slug, bucket.name)
+  }
+  return lookup
+}
+
+function buildRelatedLinks(entityType, slug, tab, nameLookups) {
+  const links = []
+
+  const topRole = topCounts(tab.roles, 1)[0]
+  if (topRole) {
+    links.push({
+      label: `${nameLookups.role.get(topRole[0]) || topRole[0]} jobs`,
+      href: `/jobs/${topRole[0]}`,
+    })
+  }
+
+  const topLocation = topCounts(tab.locations, 1)[0]
+  if (topLocation) {
+    links.push({
+      label: `${nameLookups.location.get(topLocation[0]) || topLocation[0]} hiring`,
+      href: `/locations/${topLocation[0]}`,
+    })
+  }
+
+  const topCompany = topCounts(tab.companies, 1)[0]
+  if (topCompany) {
+    links.push({
+      label: `${nameLookups.company.get(topCompany[0]) || topCompany[0]} hiring`,
+      href: `/companies/${topCompany[0]}`,
+    })
+  }
+
+  const topIndustry = topCounts(tab.industries, 1)[0]
+  if (topIndustry) {
+    links.push({
+      label: `${nameLookups.industry.get(topIndustry[0]) || topIndustry[0]} industry`,
+      href: `/industries/${topIndustry[0]}`,
+    })
+  }
+
+  links.push({ label: "JobDataPool API", href: "https://jobdatapool.com/api" })
+  return links.slice(0, 5)
+}
+
+function buildEntityBreakdowns(crossTabs, nameLookups, entities) {
+  const breakdowns = {}
+
+  for (const record of entities.company.records) {
+    const tab = crossTabs.company.get(record.slug)
+    if (!tab) continue
+    breakdowns[`company:${record.slug}`] = {
+      primaryRows: buildRows(topCounts(tab.roles), nameLookups.role, "role"),
+      secondaryRows: buildRows(topCounts(tab.locations), nameLookups.location, "location", () => ({
+        "remote share": `${record.metrics.remoteShare}%`,
+      })),
+      relatedLinks: buildRelatedLinks("company", record.slug, tab, nameLookups),
+    }
+  }
+
+  for (const record of entities.role.records) {
+    const tab = crossTabs.role.get(record.slug)
+    if (!tab) continue
+    breakdowns[`role:${record.slug}`] = {
+      primaryRows: buildRows(topCounts(tab.companies), nameLookups.company, "company"),
+      secondaryRows: buildRows(topCounts(tab.locations), nameLookups.location, "location", () => ({
+        "median salary": record.metrics.medianSalary
+          ? `$${record.metrics.medianSalary.toLocaleString()}`
+          : "n/a",
+      })),
+      relatedLinks: buildRelatedLinks("role", record.slug, tab, nameLookups),
+    }
+  }
+
+  for (const record of entities.location.records) {
+    const tab = crossTabs.location.get(record.slug)
+    if (!tab) continue
+    breakdowns[`location:${record.slug}`] = {
+      primaryRows: buildRows(topCounts(tab.roles), nameLookups.role, "role"),
+      secondaryRows: buildRows(topCounts(tab.companies), nameLookups.company, "company"),
+      relatedLinks: buildRelatedLinks("location", record.slug, tab, nameLookups),
+    }
+  }
+
+  for (const record of entities.industry.records) {
+    const tab = crossTabs.industry.get(record.slug)
+    if (!tab) continue
+    breakdowns[`industry:${record.slug}`] = {
+      primaryRows: buildRows(topCounts(tab.companies), nameLookups.company, "company"),
+      secondaryRows: buildRows(topCounts(tab.roles), nameLookups.role, "role"),
+      relatedLinks: buildRelatedLinks("industry", record.slug, tab, nameLookups),
+    }
+  }
+
+  return breakdowns
+}
+
+function buildCommunityLayer(entities, crossTabs, nameLookups, snapshotDate) {
+  const locationSignals = entities.location.records
+    .map((record) => {
+      const coordinates = resolveCoordinates(record.slug, record.name)
+      if (!coordinates) return null
+      const tab = crossTabs.location.get(record.slug)
+      const dominantRoleSlug = tab ? topCounts(tab.roles, 1)[0]?.[0] : null
+      return {
+        id: record.slug,
+        name: record.name,
+        coordinates,
+        activeJobs: record.metrics.activeJobs,
+        newJobs7d: record.metrics.newJobs7d,
+        remoteShare: record.metrics.remoteShare,
+        signalScore: Math.min(99, Math.round(record.metrics.growthWoW + record.metrics.remoteShare / 2)),
+        dominantRole: dominantRoleSlug
+          ? nameLookups.role.get(dominantRoleSlug) || dominantRoleSlug
+          : "Mixed roles",
+        industry: topCounts(tab?.industries || new Map(), 1)[0]
+          ? nameLookups.industry.get(topCounts(tab.industries, 1)[0][0]) || "General"
+          : "General",
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.activeJobs - a.activeJobs)
+    .slice(0, 20)
+
+  const articles = entities.location.records.slice(0, 6).map((record, index) => {
+    const coordinates = resolveCoordinates(record.slug, record.name) || [-98.5795, 39.8283]
+    const tab = crossTabs.location.get(record.slug)
+    const topRoleSlug = tab ? topCounts(tab.roles, 1)[0]?.[0] : null
+    const roleName = topRoleSlug ? nameLookups.role.get(topRoleSlug) : "multiple roles"
+
+    return {
+      id: `briefing-${record.slug}`,
+      title: `${record.name}: ${record.metrics.newJobs7d} new jobs (7d) led by ${roleName}`,
+      summary: `FreeJobData counted ${record.metrics.activeJobs.toLocaleString()} active listings in ${record.name} with ${record.metrics.remoteShare}% remote share.`,
+      author: index % 2 === 0 ? "FreeJobData Team" : "Community Intel",
+      type: index % 2 === 0 ? "team" : "community",
+      publishedAt: snapshotDate,
+      location: record.name,
+      role: roleName || "Mixed roles",
+      industry: "Labor market",
+      factuality: record.metrics.newJobs7d >= 50 ? "High Signal" : "Developing",
+      confidence: Math.min(95, 55 + Math.round(record.metrics.growthWoW)),
+      sourceCount: Math.max(8, Math.round(record.metrics.activeJobs / 40)),
+      coordinates,
+      tags: [record.name, roleName || "hiring"].filter(Boolean),
+    }
+  })
+
+  return { location_signals: locationSignals, articles }
+}
+
+function buildListingPreviews(items) {
+  const active = items.filter((row) => !isClosed(row))
+
+  function previewRow(row) {
+    return {
+      company: String(row.company_name || "").trim() || "Unknown",
+      role: String(row.job_title || "").trim() || "Unknown",
+      location: String(row.job_location || "").trim() || "Unknown",
+      remote_status: isRemote(row) ? (String(row.job_location || "").toLowerCase().includes("hybrid") ? "hybrid" : "remote") : "onsite",
+      active_jobs: 1,
+    }
+  }
+
+  const general = active.slice(0, 8).map(previewRow)
+  const remote = active.filter(isRemote).slice(0, 8).map(previewRow)
+  const software = active
+    .filter((row) => /software|engineer|developer/i.test(`${row.job_title} ${row.job_summary || ""}`))
+    .slice(0, 8)
+    .map(previewRow)
+  const ai = active
+    .filter((row) => /\bai\b|machine learning|ml engineer|data scientist/i.test(`${row.job_title} ${row.job_summary || ""}`))
+    .slice(0, 8)
+    .map(previewRow)
+
+  return {
+    default: general,
+    "free-job-postings-sample": general,
+    "weekly-hiring-trends": general,
+    "top-hiring-companies": general,
+    "remote-jobs": remote.length ? remote : general,
+    "software-engineering-jobs": software.length ? software : general,
+    "ai-jobs": ai.length ? ai : general,
+    "location-demand": general,
+  }
+}
+
 function buildEntityMaps(items, snapshotDate) {
   const maps = {
     company: new Map(),
@@ -206,6 +397,7 @@ function buildEntityMaps(items, snapshotDate) {
     location: new Map(),
     industry: new Map(),
   }
+  const crossTabs = createCrossTabs()
 
   const nowTs = Date.now()
   const weekMs = 7 * 24 * 60 * 60 * 1000
@@ -230,6 +422,27 @@ function buildEntityMaps(items, snapshotDate) {
     if (!rowDate(row)) quality.rows_missing_date += 1
     if (isClosed(row)) quality.rows_closed += 1
     else quality.rows_active += 1
+
+    const companySlug = slugify(companyName || "unknown-company")
+    const roleSlug = slugify(jobTitle || "unknown-role")
+    const locationSlug = slugify(jobLocation || "unknown-location")
+
+    if (!isClosed(row)) {
+      bump(crossTabs, "company", companySlug, "roles", roleSlug)
+      bump(crossTabs, "company", companySlug, "locations", locationSlug)
+      bump(crossTabs, "role", roleSlug, "companies", companySlug)
+      bump(crossTabs, "role", roleSlug, "locations", locationSlug)
+      bump(crossTabs, "location", locationSlug, "roles", roleSlug)
+      bump(crossTabs, "location", locationSlug, "companies", companySlug)
+
+      for (const industryName of splitIndustries(row)) {
+        const industrySlug = slugify(industryName) || "uncategorized"
+        bump(crossTabs, "industry", industrySlug, "companies", companySlug)
+        bump(crossTabs, "industry", industrySlug, "roles", roleSlug)
+        bump(crossTabs, "company", companySlug, "industries", industrySlug)
+        bump(crossTabs, "location", locationSlug, "industries", industrySlug)
+      }
+    }
 
     const dimensions = [
       ["company", companyName, companyName || "unknown-company"],
@@ -311,15 +524,26 @@ function buildEntityMaps(items, snapshotDate) {
     return { catalog, records }
   }
 
+  const entities = {
+    company: toCatalogAndRecords("company", ENTITY_LIMITS.company),
+    role: toCatalogAndRecords("role", ENTITY_LIMITS.role),
+    location: toCatalogAndRecords("location", ENTITY_LIMITS.location),
+    industry: toCatalogAndRecords("industry", ENTITY_LIMITS.industry),
+  }
+
+  const nameLookups = {
+    company: nameLookupFromMaps(maps, "company"),
+    role: nameLookupFromMaps(maps, "role"),
+    location: nameLookupFromMaps(maps, "location"),
+    industry: nameLookupFromMaps(maps, "industry"),
+  }
+
   return {
     maps,
     quality,
-    entities: {
-      company: toCatalogAndRecords("company", ENTITY_LIMITS.company),
-      role: toCatalogAndRecords("role", ENTITY_LIMITS.role),
-      location: toCatalogAndRecords("location", ENTITY_LIMITS.location),
-      industry: toCatalogAndRecords("industry", ENTITY_LIMITS.industry),
-    },
+    entities,
+    crossTabs,
+    nameLookups,
   }
 }
 
@@ -405,7 +629,10 @@ function buildDatasetsMeta(activeJobs, snapshotDate) {
 
 function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
   const snapshotDate = new Date().toISOString().slice(0, 10)
-  const { maps, quality, entities } = buildEntityMaps(items, snapshotDate)
+  const { maps, quality, entities, crossTabs, nameLookups } = buildEntityMaps(items, snapshotDate)
+  const entity_breakdowns = buildEntityBreakdowns(crossTabs, nameLookups, entities)
+  const community = buildCommunityLayer(entities, crossTabs, nameLookups, snapshotDate)
+  const listing_previews = buildListingPreviews(items)
 
   const globalActive = quality.rows_active
   const global = {
@@ -470,6 +697,9 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
       industries: entities.industry.records,
     },
     datasets: datasetCounts,
+    entity_breakdowns,
+    community,
+    listing_previews,
     analyst: {
       field_glossary: FIELD_GLOSSARY,
       seo_thresholds: SEO_THRESHOLDS,
