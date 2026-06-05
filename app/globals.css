@@ -17,6 +17,7 @@
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background: radial-gradient(circle at top left, #e0f2fe 0, transparent 32rem), var(--bg);
   color: var(--ink);
   font-family:
@@ -32,6 +33,7 @@ a {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
 }
 
 .nav {
@@ -49,8 +51,21 @@ a {
 }
 
 .brand {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-weight: 850;
   letter-spacing: -0.04em;
+}
+
+.brand img {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  background: white;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 0.1);
 }
 
 .nav-cluster {
@@ -58,6 +73,7 @@ a {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.45rem;
+  min-width: 0;
 }
 
 .nav-sitelinks {
@@ -187,6 +203,7 @@ p {
 
 .metric-card {
   padding: 1rem;
+  min-width: 0;
 }
 
 .metric-label,
@@ -230,6 +247,7 @@ p {
   background: var(--brand);
   color: #ffffff;
   font-weight: 800;
+  text-align: center;
 }
 
 .button.secondary {
@@ -247,11 +265,21 @@ p {
 
 .table-wrap {
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-empty {
+  padding: 1rem;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: 1.25rem;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 620px;
 }
 
 th,
@@ -304,6 +332,22 @@ th {
   .nav {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .nav-cluster {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .nav-sitelinks,
+  .nav-links {
+    width: 100%;
+    gap: 0.55rem;
+  }
+
+  .nav-sitelinks a,
+  .nav-links a {
+    padding: 0.35rem 0;
   }
 
   .two-column {
@@ -1108,6 +1152,50 @@ th {
 }
 
 @media (max-width: 720px) {
+  .main {
+    width: min(100% - 1rem, 1180px);
+    padding: 1rem 0 3rem;
+  }
+
+  .footer,
+  .nav {
+    padding-inline: 0.75rem;
+  }
+
+  .hero,
+  .community-hero,
+  .maps-hero {
+    border-radius: 1.15rem;
+  }
+
+  .section {
+    margin-top: 2rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card,
+  .metric-card,
+  .cta,
+  .note,
+  .chart {
+    border-radius: 1rem;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  .pill-row .button {
+    flex: 1 1 100%;
+  }
+
+  table {
+    min-width: 560px;
+  }
+
   .community-feed-header,
   .community-map-toolbar {
     align-items: flex-start;
@@ -1129,5 +1217,28 @@ th {
 
   .community-mode-hero {
     align-items: start;
+  }
+
+  .community-map-shell {
+    padding: 0.65rem;
+    border-radius: 1rem;
+  }
+
+  .community-map-canvas {
+    min-height: 24rem;
+  }
+
+  .map-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .map-tools button {
+    width: 100%;
+  }
+
+  .map-side-panel {
+    padding: 0.85rem;
   }
 }

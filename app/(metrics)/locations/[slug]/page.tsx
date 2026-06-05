@@ -10,19 +10,23 @@ export function generateStaticParams() {
   return locations.map((location) => ({ slug: location.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const record = locationRecords.find((item) => item.slug === params.slug)
+type SlugPageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: SlugPageProps) {
+  const { slug } = await params
+  const record = locationRecords.find((item) => item.slug === slug)
 
   return buildMetadata({
     title: record ? `${record.name} Hiring Trends` : "Location Hiring Trends",
     description: record?.description ?? "Location hiring intelligence from FreeJobData.",
-    path: `/locations/${params.slug}`,
+    path: `/locations/${slug}`,
     index: shouldIndexPage(record?.metrics)
   })
 }
 
-export default function LocationPage({ params }: { params: { slug: string } }) {
-  const context = getEntityPageContext("location", params.slug, locationRecords)
+export default async function LocationPage({ params }: SlugPageProps) {
+  const { slug } = await params
+  const context = getEntityPageContext("location", slug, locationRecords)
 
   if (!context) {
     notFound()

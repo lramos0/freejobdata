@@ -16,7 +16,7 @@ const initialViewState = {
 }
 
 export function CommunityMap() {
-  const jobPostingLocationSignals = getJobPostingLocationSignals()
+  const jobPostingLocationSignals = useMemo(() => getJobPostingLocationSignals(), [])
   const [selectedLocationId, setSelectedLocationId] = useState(jobPostingLocationSignals[0]?.id)
   const selectedLocation = jobPostingLocationSignals.find((location) => location.id === selectedLocationId)
 

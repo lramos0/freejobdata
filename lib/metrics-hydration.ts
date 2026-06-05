@@ -37,6 +37,64 @@ export type JobPostingLocationSignalSnapshot = {
   industry: string
 }
 
+const fallbackLocationSignals: JobPostingLocationSignalSnapshot[] = [
+  {
+    id: "san-francisco-ca",
+    name: "San Francisco, CA",
+    coordinates: [-122.4194, 37.7749],
+    activeJobs: 1425,
+    newJobs7d: 186,
+    remoteShare: 41.8,
+    signalScore: 94,
+    dominantRole: "Machine Learning Engineer",
+    industry: "Artificial Intelligence"
+  },
+  {
+    id: "new-york-ny",
+    name: "New York, NY",
+    coordinates: [-74.006, 40.7128],
+    activeJobs: 1210,
+    newJobs7d: 141,
+    remoteShare: 36.2,
+    signalScore: 88,
+    dominantRole: "Product Manager",
+    industry: "Financial Technology"
+  },
+  {
+    id: "seattle-wa",
+    name: "Seattle, WA",
+    coordinates: [-122.3321, 47.6062],
+    activeJobs: 940,
+    newJobs7d: 116,
+    remoteShare: 38.5,
+    signalScore: 82,
+    dominantRole: "Software Engineer",
+    industry: "Cloud Infrastructure"
+  },
+  {
+    id: "austin-tx",
+    name: "Austin, TX",
+    coordinates: [-97.7431, 30.2672],
+    activeJobs: 725,
+    newJobs7d: 92,
+    remoteShare: 44.1,
+    signalScore: 76,
+    dominantRole: "Data Engineer",
+    industry: "Software"
+  },
+  {
+    id: "san-diego-ca",
+    name: "San Diego, CA",
+    coordinates: [-117.1611, 32.7157],
+    activeJobs: 510,
+    newJobs7d: 66,
+    remoteShare: 29.7,
+    signalScore: 69,
+    dominantRole: "Security Engineer",
+    industry: "Healthcare"
+  }
+]
+
 function snapshot(): MetricsSnapshotFile | null {
   return readMetricsSnapshot()
 }
@@ -61,14 +119,18 @@ export function getEntityPageContext(entityType: EntityType, slug: string, recor
 
   return {
     record,
-    primaryRows: breakdown?.primaryRows ?? [],
-    secondaryRows: breakdown?.secondaryRows ?? [],
-    relatedLinks: breakdown?.relatedLinks ?? []
+    primaryRows: breakdown?.primaryRows ?? buildFallbackPrimaryRows(record),
+    secondaryRows: breakdown?.secondaryRows ?? buildFallbackSecondaryRows(record),
+    relatedLinks: breakdown?.relatedLinks ?? buildFallbackRelatedLinks(entityType, record)
   }
 }
 
 export function getJobPostingLocationSignals(): JobPostingLocationSignalSnapshot[] {
-  return (snapshot()?.community?.location_signals as JobPostingLocationSignalSnapshot[] | undefined) ?? []
+  return (
+    (snapshot()?.community?.location_signals as JobPostingLocationSignalSnapshot[] | undefined)?.filter(
+      (location) => Array.isArray(location.coordinates) && location.coordinates.length === 2
+    ) ?? fallbackLocationSignals
+  )
 }
 
 export function getCommunityArticles(): CommunityArticleSnapshot[] {
@@ -77,11 +139,151 @@ export function getCommunityArticles(): CommunityArticleSnapshot[] {
 
 export function getDatasetPreviewRows(slug: string): Record<string, string | number>[] {
   const previews = snapshot()?.listing_previews as Record<string, Record<string, string | number>[]> | undefined
-  if (!previews) return []
-  return previews[slug] ?? previews.default ?? []
+  const snapshotRows = previews?.[slug] ?? previews?.default
+  if (snapshotRows?.length) return snapshotRows
+
+  if (typeof window !== "undefined") {
+    return []
+  }
+
+  try {
+    const fs = require("fs") as typeof import("fs")
+    const path = require("path") as typeof import("path")
+    const csvPath = path.join(process.cwd(), "public", "samples", `${slug}.csv`)
+    if (!fs.existsSync(csvPath)) {
+      return []
+    }
+
+    return parseCsvPreview(fs.readFileSync(csvPath, "utf8")).slice(0, 8)
+  } catch {
+    return []
+  }
 }
 
 export function getCompanyMetricsBySlug(slug: string) {
   const record = snapshot()?.entities?.companies?.find((item) => item.slug === slug)
   return record?.metrics ?? null
+}
+
+function buildFallbackPrimaryRows(record: EntityRecord): Record<string, string | number>[] {
+  return [
+    { Metric: "Active jobs", Value: record.metrics.activeJobs.toLocaleString(), Signal: "Current open-posting volume" },
+    { Metric: "New jobs, 7d", Value: record.metrics.newJobs7d.toLocaleString(), Signal: "Fresh hiring demand" },
+    { Metric: "Closed jobs, 7d", Value: record.metrics.closedJobs7d.toLocaleString(), Signal: "Posting churn" },
+    {
+      Metric: "Median salary",
+      Value: record.metrics.medianSalary ? `$${record.metrics.medianSalary.toLocaleString()}` : "Not enough coverage",
+      Signal: "Salary-bearing postings"
+    }
+  ]
+}
+
+function buildFallbackSecondaryRows(record: EntityRecord): Record<string, string | number>[] {
+  return [
+    { Segment: "Remote share", Value: `${record.metrics.remoteShare}%`, Detail: "Remote or hybrid postings" },
+    { Segment: "Weekly growth", Value: `${record.metrics.growthWoW}%`, Detail: "Week-over-week change" },
+    { Segment: "Monthly growth", Value: `${record.metrics.growthMoM}%`, Detail: "Month-over-month change" },
+    {
+      Segment: "Salary coverage",
+      Value: `${record.metrics.salaryCoverage ?? 0}%`,
+      Detail: "Rows with usable compensation data"
+    }
+  ]
+}
+
+function buildFallbackRelatedLinks(entityType: EntityType, record: EntityRecord): { label: string; href: string }[] {
+  const linksByType: Record<EntityType, { label: string; href: string }[]> = {
+    company: [
+      { label: "Browse role demand", href: "/jobs" },
+      { label: "Browse location trends", href: "/locations" },
+      { label: "Download company dataset sample", href: "/datasets/top-hiring-companies" }
+    ],
+    role: [
+      { label: "Browse company hiring", href: "/companies" },
+      { label: "Browse location trends", href: "/locations" },
+      { label: "Download role dataset sample", href: "/datasets/software-engineering-jobs" }
+    ],
+    location: [
+      { label: "Open hiring map", href: "/maps" },
+      { label: "Browse company hiring", href: "/companies" },
+      { label: "Download location dataset sample", href: "/datasets/location-demand" }
+    ],
+    industry: [
+      { label: "Browse role demand", href: "/jobs" },
+      { label: "Browse company hiring", href: "/companies" },
+      { label: "Download weekly trends sample", href: "/datasets/weekly-hiring-trends" }
+    ],
+    global: [
+      { label: "Metrics hub", href: "/metrics" },
+      { label: "Dataset portal", href: "/datasets" },
+      { label: "Methodology", href: "/methodology" }
+    ]
+  }
+
+  return [{ label: `${record.name} methodology`, href: "/methodology" }, ...linksByType[entityType]]
+}
+
+function parseCsvPreview(csv: string): Record<string, string | number>[] {
+  const rows = parseCsvRows(csv.trim())
+  const [headers, ...records] = rows
+  if (!headers?.length) return []
+
+  return records.map((record) =>
+    Object.fromEntries(
+      headers.map((header, index) => {
+        const value = record[index] ?? ""
+        const numeric = Number(value)
+        return [header, value.trim() !== "" && Number.isFinite(numeric) ? numeric : value]
+      })
+    )
+  )
+}
+
+function parseCsvRows(csv: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let cell = ""
+  let inQuotes = false
+
+  for (let index = 0; index < csv.length; index += 1) {
+    const char = csv[index]
+    const next = csv[index + 1]
+
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"'
+      index += 1
+      continue
+    }
+
+    if (char === '"') {
+      inQuotes = !inQuotes
+      continue
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(cell)
+      cell = ""
+      continue
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") {
+        index += 1
+      }
+      row.push(cell)
+      rows.push(row)
+      row = []
+      cell = ""
+      continue
+    }
+
+    cell += char
+  }
+
+  if (cell || row.length) {
+    row.push(cell)
+    rows.push(row)
+  }
+
+  return rows.filter((cells) => cells.some((value) => value.trim() !== ""))
 }

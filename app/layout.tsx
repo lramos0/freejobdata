@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import "maplibre-gl/dist/maplibre-gl.css"
 import "./globals.css"
@@ -25,6 +26,14 @@ export const metadata: Metadata = {
     title: siteTitle,
     description: siteDescription
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" }
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
+  },
   alternates: {
     canonical: "/"
   }
@@ -40,7 +49,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="site-shell">
           <header className="nav">
             <Link className="brand" href="/">
-              FreeJobData
+              <Image src="/icon-512.png" alt="" width={36} height={36} priority />
+              <span>FreeJobData</span>
             </Link>
             <div className="nav-cluster">
               <SiteHubNav />

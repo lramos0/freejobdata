@@ -14,18 +14,22 @@ export function generateStaticParams() {
   return datasets.map((dataset) => ({ slug: dataset.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const dataset = datasets.find((item) => item.slug === params.slug)
+type SlugPageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: SlugPageProps) {
+  const { slug } = await params
+  const dataset = datasets.find((item) => item.slug === slug)
 
   return buildMetadata({
     title: dataset ? dataset.title : "Free Job Market Dataset",
     description: dataset?.description ?? "Free job market dataset sample from FreeJobData.",
-    path: `/datasets/${params.slug}`
+    path: `/datasets/${slug}`
   })
 }
 
-export default function DatasetPage({ params }: { params: { slug: string } }) {
-  const dataset = datasets.find((item) => item.slug === params.slug)
+export default async function DatasetPage({ params }: SlugPageProps) {
+  const { slug } = await params
+  const dataset = datasets.find((item) => item.slug === slug)
 
   if (!dataset) {
     notFound()

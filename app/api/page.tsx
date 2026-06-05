@@ -19,7 +19,7 @@ export default function ApiPage() {
         <a className="button" href="https://jobdatapool.com/api">
           View API
         </a>
-        <a className="button secondary" href="https://jobdatapool.com/docs">
+        <a className="button secondary" href="https://jobdatapool.com/docs/api">
           Read docs
         </a>
       </div>

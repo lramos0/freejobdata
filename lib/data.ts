@@ -57,10 +57,50 @@ export function getHomeDashboard(): HomeDashboard {
     return snapshot.dashboards.home
   }
 
+  const totalActiveJobs = companyRecords.reduce((sum, record) => sum + record.metrics.activeJobs, 0)
+  const totalNewJobs7d = companyRecords.reduce((sum, record) => sum + record.metrics.newJobs7d, 0)
+  const remoteShare =
+    companyRecords.reduce((sum, record) => sum + record.metrics.remoteShare, 0) /
+    Math.max(companyRecords.length, 1)
+
   return {
-    hero_metrics: [],
-    top_hiring_trends: [],
-    fast_growing_roles: []
+    hero_metrics: [
+      {
+        label: "Active job signals",
+        value: totalActiveJobs.toLocaleString(),
+        detail: "Seed snapshot until JobDataPool ingest is available"
+      },
+      {
+        label: "New jobs, 7d",
+        value: totalNewJobs7d.toLocaleString(),
+        detail: "Measured across tracked companies"
+      },
+      {
+        label: "Remote share",
+        value: `${remoteShare.toFixed(1)}%`,
+        detail: "Average across public seed records"
+      }
+    ],
+    top_hiring_trends: companyRecords
+      .slice()
+      .sort((a, b) => b.metrics.activeJobs - a.metrics.activeJobs)
+      .slice(0, 8)
+      .map((record) => ({
+        Company: record.name,
+        "Active jobs": record.metrics.activeJobs,
+        "New jobs, 7d": record.metrics.newJobs7d,
+        "Remote share": `${record.metrics.remoteShare}%`
+      })),
+    fast_growing_roles: roleRecords
+      .slice()
+      .sort((a, b) => b.metrics.growthWoW - a.metrics.growthWoW)
+      .slice(0, 8)
+      .map((record) => ({
+        Role: record.name,
+        "Active jobs": record.metrics.activeJobs,
+        "WoW growth": `${record.metrics.growthWoW}%`,
+        "Salary coverage": `${record.metrics.salaryCoverage ?? 0}%`
+      }))
   }
 }
 

@@ -10,19 +10,23 @@ export function generateStaticParams() {
   return industries.map((industry) => ({ slug: industry.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const record = industryRecords.find((item) => item.slug === params.slug)
+type SlugPageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: SlugPageProps) {
+  const { slug } = await params
+  const record = industryRecords.find((item) => item.slug === slug)
 
   return buildMetadata({
     title: record ? `${record.name} Hiring Trends` : "Industry Hiring Trends",
     description: record?.description ?? "Industry hiring intelligence from FreeJobData.",
-    path: `/industries/${params.slug}`,
+    path: `/industries/${slug}`,
     index: shouldIndexPage(record?.metrics)
   })
 }
 
-export default function IndustryPage({ params }: { params: { slug: string } }) {
-  const context = getEntityPageContext("industry", params.slug, industryRecords)
+export default async function IndustryPage({ params }: SlugPageProps) {
+  const { slug } = await params
+  const context = getEntityPageContext("industry", slug, industryRecords)
 
   if (!context) {
     notFound()

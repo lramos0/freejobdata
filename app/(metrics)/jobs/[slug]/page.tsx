@@ -10,19 +10,23 @@ export function generateStaticParams() {
   return roles.map((role) => ({ slug: role.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const record = roleRecords.find((item) => item.slug === params.slug)
+type SlugPageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: SlugPageProps) {
+  const { slug } = await params
+  const record = roleRecords.find((item) => item.slug === slug)
 
   return buildMetadata({
     title: record ? `${record.name} Job Market` : "Job Role Demand",
     description: record?.description ?? "Role demand intelligence from FreeJobData.",
-    path: `/jobs/${params.slug}`,
+    path: `/jobs/${slug}`,
     index: shouldIndexPage(record?.metrics)
   })
 }
 
-export default function JobPage({ params }: { params: { slug: string } }) {
-  const context = getEntityPageContext("role", params.slug, roleRecords)
+export default async function JobPage({ params }: SlugPageProps) {
+  const { slug } = await params
+  const context = getEntityPageContext("role", slug, roleRecords)
 
   if (!context) {
     notFound()

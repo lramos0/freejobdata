@@ -1,6 +1,14 @@
 export function DataTable({ rows }: { rows: Record<string, string | number>[] }) {
   const headers = rows[0] ? Object.keys(rows[0]) : []
 
+  if (!headers.length) {
+    return (
+      <div className="table-empty">
+        Metrics are waiting on the next JobDataPool snapshot. Seed pages still include summary cards and methodology.
+      </div>
+    )
+  }
+
   return (
     <div className="table-wrap">
       <table>

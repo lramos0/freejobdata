@@ -10,18 +10,22 @@ export function generateStaticParams() {
   return reports.map((report) => ({ slug: report.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const report = reports.find((item) => item.slug === params.slug)
+type SlugPageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: SlugPageProps) {
+  const { slug } = await params
+  const report = reports.find((item) => item.slug === slug)
 
   return buildMetadata({
     title: report ? report.title : "Job Market Report",
     description: report?.summary ?? "Job market report from FreeJobData.",
-    path: `/reports/${params.slug}`
+    path: `/reports/${slug}`
   })
 }
 
-export default function ReportPage({ params }: { params: { slug: string } }) {
-  const report = reports.find((item) => item.slug === params.slug)
+export default async function ReportPage({ params }: SlugPageProps) {
+  const { slug } = await params
+  const report = reports.find((item) => item.slug === slug)
 
   if (!report) {
     notFound()

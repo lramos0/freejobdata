@@ -2,23 +2,10 @@ import type { MetricsSnapshotFile } from "./metrics-snapshot"
 
 let cached: MetricsSnapshotFile | null | undefined
 
-/**
- * Reads metrics-snapshot.json (written by ingest-job-data-pool).
- * Safe for server and client bundles when the file exists at build time.
- */
+/** Reads metrics-snapshot.json (written by ingest-job-data-pool) on the server when present. */
 export function readMetricsSnapshot(): MetricsSnapshotFile | null {
   if (cached !== undefined) {
     return cached
-  }
-
-  try {
-    const data = require("../data/metrics-snapshot.json") as MetricsSnapshotFile
-    if (data?.entities?.companies?.length) {
-      cached = data
-      return cached
-    }
-  } catch {
-    // JSON not present in this environment yet.
   }
 
   if (typeof window === "undefined") {
