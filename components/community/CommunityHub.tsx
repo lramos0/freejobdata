@@ -119,7 +119,7 @@ export function CommunityHub() {
             <button className="button" type="button" onClick={() => setMode("maps")}>
               Open Maps
             </button>
-            <a className="button secondary" href="https://jobdatapool.com/api">
+            <a className="button secondary" href="https://jobdatapool.com/#api">
               JobDataPool API
             </a>
           </div>
@@ -272,7 +272,7 @@ function ArticleCard({ article }: { article: CommunityArticle }) {
         <span>{article.publishedAt}</span>
         <span>{article.role}</span>
         <span>{article.sourceCount} corroborating postings</span>
-        <a href="https://jobdatapool.com/api">Open source data</a>
+        <a href="https://jobdatapool.com/#api">Open source data</a>
       </div>
       <div className="pill-row">
         {article.tags.map((tag) => (

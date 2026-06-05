@@ -35,7 +35,7 @@ GOOGLE_CLOUD_LANGUAGE_API_KEY=
 
 - Static-data versions of company, role, location, industry, dataset, and report pages.
 - Dynamic metadata, canonical URLs, robots rules, sitemap generation, and JSON-LD.
-- Sample CSV downloads under `public/samples`.
+- Dataset CSV downloads route through `netlify/functions/download-dataset.js`, which derives cached CSVs from the public R2 `listings-june-2026.csv` source.
 - Script stubs for syncing JobDataPool data and generating weekly reports.
 - Community intelligence page with Firebase Auth role detection and Deck.gl job-location map.
 
@@ -48,7 +48,7 @@ The community page reads Firebase ID-token custom claims client-side for display
 
 Server-side writes still need enforcement through Firebase Security Rules or a trusted API that verifies ID tokens.
 
-Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026-api.json` on R2). See [docs/analytics-ingest.md](docs/analytics-ingest.md).
+Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026-api.json` on R2). Downloadable datasets come from the sibling public R2 `listings-june-2026.csv` object and are cached per dataset slug. See [docs/analytics-ingest.md](docs/analytics-ingest.md).
 
 ```bash
 npm run ingest:local   # write data/metrics-snapshot.json for local dev / validation

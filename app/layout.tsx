@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SiteHubNav />
               <nav className="nav-links" aria-label="Secondary navigation">
                 <Link href="/maps">Maps</Link>
-                <a href="https://jobdatapool.com/api">JobDataPool API</a>
+                <a href="https://jobdatapool.com/#api">JobDataPool API</a>
               </nav>
             </div>
           </header>

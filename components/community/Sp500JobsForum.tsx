@@ -151,7 +151,7 @@ function CompanyForum({ company, onBack }: { company: Sp500Company; onBack: () =
         <button className="reddit-back" type="button" onClick={onBack}>
           ← All forums
         </button>
-        <a href="https://jobdatapool.com/api" className="reddit-back">
+        <a href="https://jobdatapool.com/#api" className="reddit-back">
           JobDataPool API
         </a>
       </div>
@@ -269,7 +269,7 @@ export function Sp500JobsForum() {
         ) : (
           <>
             <div className="reddit-top">
-              <a href="https://jobdatapool.com/api" className="reddit-back">
+              <a href="https://jobdatapool.com/#api" className="reddit-back">
                 JobDataPool API
               </a>
               <div className="reddit-hub-title">

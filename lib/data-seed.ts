@@ -153,7 +153,7 @@ export const seedDatasets: Dataset[] = [
     active_jobs: "Active job count for snapshot rows",
     snapshot_date: "ISO snapshot date"
   },
-  sampleCsvUrl: `/samples/${slug}.csv`,
+  sampleCsvUrl: `/downloads/${slug}.csv`,
   fullDatasetCtaUrl: "https://jobdatapool.com/datasets",
   updatedAt: today,
   recordCount: 5000 + index * 1850,

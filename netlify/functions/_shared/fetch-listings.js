@@ -1,6 +1,8 @@
 /** Canonical JobDataPool listings feed (R2 API JSON). */
 const LISTINGS_API_JSON_URL =
   "https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026-api.json"
+const LISTINGS_CSV_URL =
+  "https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026.csv"
 
 async function fetchJobListings() {
   const startedAt = Date.now()
@@ -33,5 +35,6 @@ async function fetchJobListings() {
 
 module.exports = {
   LISTINGS_API_JSON_URL,
+  LISTINGS_CSV_URL,
   fetchJobListings,
 }

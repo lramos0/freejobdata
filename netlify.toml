@@ -31,3 +31,8 @@
   from = "/data/metrics-manifest.json"
   to = "/.netlify/functions/ingest-job-data-pool?view=manifest"
   status = 200
+
+[[redirects]]
+  from = "/downloads/:dataset.csv"
+  to = "/.netlify/functions/download-dataset?dataset=:dataset"
+  status = 200

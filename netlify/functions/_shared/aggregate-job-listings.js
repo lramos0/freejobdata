@@ -244,7 +244,7 @@ function buildRelatedLinks(entityType, slug, tab, nameLookups) {
     })
   }
 
-  links.push({ label: "JobDataPool API", href: "https://jobdatapool.com/api" })
+  links.push({ label: "JobDataPool API", href: "https://jobdatapool.com/#api" })
   return links.slice(0, 5)
 }
 

@@ -10,7 +10,7 @@ export function JobDataPoolCTA({
       <h2>{title}</h2>
       <p>{body}</p>
       <div className="pill-row">
-        <a className="button" href="https://jobdatapool.com/api">
+        <a className="button" href="https://jobdatapool.com/#api">
           Get this data via API
         </a>
         <a className="button secondary" href="https://jobdatapool.com/datasets">

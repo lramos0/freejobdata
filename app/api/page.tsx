@@ -16,7 +16,7 @@ export default function ApiPage() {
         data products are available through JobDataPool.
       </p>
       <div className="pill-row">
-        <a className="button" href="https://jobdatapool.com/api">
+        <a className="button" href="https://jobdatapool.com/#api">
           View API
         </a>
         <a className="button secondary" href="https://jobdatapool.com/docs/api">
