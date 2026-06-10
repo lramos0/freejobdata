@@ -31,6 +31,32 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "")
 }
 
+const ROLE_TITLE_TERMS =
+  /\b(associate|representative|engineer|manager|technician|driver|consultant|banker|therapist|psychologist|nurse|rn|assistant|operator|specialist|coordinator|director|clerk|analyst|developer|supervisor|cashier|server|member|crew|sales|service|delivery|maintenance|leasing|financial|licensed|account|customer|mechanic|attorney|teacher|aide|intern|lead|architect|administrator|designer|planner|writer|counselor)\b/i
+
+function isUsableCompanyName(name) {
+  const normalized = String(name || "").trim().toLowerCase()
+  return Boolean(normalized && !["unknown", "unknown-company", "n/a", "na", "null"].includes(normalized))
+}
+
+function isUsableRoleTitle(name) {
+  const normalized = String(name || "").trim().toLowerCase()
+  if (!normalized || ["unknown-role", "403 forbidden", "sign in", "just a moment", "workday"].includes(normalized)) {
+    return false
+  }
+
+  if (
+    /\b(forbidden|captcha|access denied|cloudflare|sign in|login|just a moment|inactive career page|job listings|job search)\b/i.test(
+      name
+    ) ||
+    /[<>?*]/.test(name)
+  ) {
+    return false
+  }
+
+  return ROLE_TITLE_TERMS.test(name)
+}
+
 function parseIsoDate(raw) {
   const text = String(raw || "").trim().slice(0, 10)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null
@@ -554,19 +580,26 @@ function rowCountryHint(locationName) {
 }
 
 function buildDashboards(maps, entityBundles, snapshotDate) {
-  const topCompanies = rollupTable(maps.company, 10).map((row) => ({
-    company: row.name,
-    "active jobs": row.active_jobs,
-    "new 7d": row.new_jobs_7d,
-    "remote share": `${row.remote_share_pct}%`,
-  }))
+  const topCompanies = rollupTable(maps.company, 50)
+    .filter((row) => isUsableCompanyName(row.name))
+    .slice(0, 10)
+    .map((row) => ({
+      company: row.name,
+      "active jobs": row.active_jobs,
+      "new 7d": row.new_jobs_7d,
+      "remote share": `${row.remote_share_pct}%`,
+    }))
 
-  const fastGrowingRoles = rollupTable(maps.role, 10).map((row) => ({
-    role: row.name,
-    "active jobs": row.active_jobs,
-    "WoW growth": `${row.wow_growth_pct}%`,
-    "median salary": row.median_salary ? `$${row.median_salary.toLocaleString()}` : "n/a",
-  }))
+  const fastGrowingRoles = rollupTable(maps.role, 50)
+    .filter((row) => isUsableRoleTitle(row.name))
+    .sort((a, b) => b.wow_growth_pct - a.wow_growth_pct || b.active_jobs - a.active_jobs)
+    .slice(0, 10)
+    .map((row) => ({
+      role: row.name,
+      "active jobs": row.active_jobs,
+      "WoW growth": `${row.wow_growth_pct}%`,
+      "median salary": row.median_salary ? `$${row.median_salary.toLocaleString()}` : "n/a",
+    }))
 
   const globalActive = entityBundles.globalActive
 

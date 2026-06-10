@@ -35,7 +35,7 @@ export default function HomePage() {
       </section>
 
       <section className="section">
-        <h2>Top hiring trends</h2>
+        <h2>Companies hiring the most</h2>
         <DataTable rows={dashboard.top_hiring_trends} />
       </section>
 
@@ -60,7 +60,7 @@ export default function HomePage() {
       </section>
 
       <section className="section">
-        <h2>Fast-growing roles</h2>
+        <h2>Fast-growing job titles</h2>
         <DataTable rows={dashboard.fast_growing_roles} />
       </section>
 

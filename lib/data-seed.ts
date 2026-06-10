@@ -134,7 +134,7 @@ export const seedIndustries: Industry[] = industryNames.map(([slug, name], index
 export const seedDatasets: Dataset[] = [
   ["free-job-postings-sample", "Free Job Postings Sample", "A sample of normalized job postings with company, role, location, remote status, and salary fields."],
   ["weekly-hiring-trends", "Weekly Hiring Trends", "Weekly active jobs, new postings, closed postings, and hiring growth by market segment."],
-  ["top-hiring-companies", "Top Hiring Companies", "Ranked companies by active job volume, weekly growth, and role concentration."],
+  ["top-hiring-companies", "Companies Hiring the Most", "Ranked companies by active job volume, new postings, and remote share."],
   ["remote-jobs", "Remote Jobs", "Remote and hybrid job postings by role, industry, company, and geography."],
   ["software-engineering-jobs", "Software Engineering Jobs", "Software engineering demand by company, role family, location, and salary availability."],
   ["ai-jobs", "AI Jobs", "AI, machine learning, and data science hiring trends across companies and markets."],
@@ -165,7 +165,7 @@ export const seedReports: Report[] = [
   ["ai-hiring-trends", "AI Hiring Trends", "AI hiring remains concentrated among infrastructure, model, and applied product teams.", "industry"],
   ["remote-jobs-report", "Remote Jobs Report", "Remote-friendly postings remain strongest in software, data, and customer-facing technical roles.", "monthly"],
   ["software-engineer-job-market", "Software Engineer Job Market", "Software engineering demand is broadening across infrastructure, AI, and security teams.", "weekly"],
-  ["top-hiring-companies", "Top Hiring Companies", "The fastest-growing hiring organizations show concentrated growth in product and engineering roles.", "company"],
+  ["top-hiring-companies", "Companies Hiring the Most", "The employers with the highest active posting volume reveal where current demand is concentrated.", "company"],
   ["san-diego-hiring-trends", "San Diego Hiring Trends", "San Diego demand is strongest in software, life sciences, defense, and climate technology.", "location"]
 ].map(([slug, title, summary, reportType], index) => ({
   id: `report-${index + 1}`,

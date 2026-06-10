@@ -16,13 +16,43 @@ import { readMetricsSnapshot } from "./metrics-snapshot-runtime"
 import { mergeDatasetCounts, stripEntityRecord, type HomeDashboard } from "./metrics-snapshot"
 import { withSafeCompanyDomains } from "./domain-fallbacks"
 
+const roleTitleTerms =
+  /\b(associate|representative|engineer|manager|technician|driver|consultant|banker|therapist|psychologist|nurse|rn|assistant|operator|specialist|coordinator|director|clerk|analyst|developer|supervisor|cashier|server|member|crew|sales|service|delivery|maintenance|leasing|financial|licensed|account|customer|mechanic|attorney|teacher|aide|intern|lead|architect|administrator|designer|planner|writer|counselor)\b/i
+
+function isUsableCompanyName(name: string) {
+  const normalized = name.trim().toLowerCase()
+  return Boolean(normalized && !["unknown", "unknown-company", "n/a", "na", "null"].includes(normalized))
+}
+
+function isUsableRoleTitle(name: string) {
+  const normalized = name.trim().toLowerCase()
+  if (!normalized || ["unknown-role", "403 forbidden", "sign in", "just a moment", "workday"].includes(normalized)) {
+    return false
+  }
+
+  if (
+    /\b(forbidden|captcha|access denied|cloudflare|sign in|login|just a moment|inactive career page|job listings|job search)\b/i.test(
+      name
+    ) ||
+    /[<>?*]/.test(name)
+  ) {
+    return false
+  }
+
+  return roleTitleTerms.test(name)
+}
+
 const snapshot = readMetricsSnapshot()
 
 export const companies: Company[] = withSafeCompanyDomains(
-  snapshot?.catalog.companies?.length ? snapshot.catalog.companies : seedCompanies
+  snapshot?.catalog.companies?.length
+    ? snapshot.catalog.companies.filter((company) => isUsableCompanyName(company.name))
+    : seedCompanies
 )
 
-export const roles: Role[] = snapshot?.catalog.roles?.length ? snapshot.catalog.roles : seedRoles
+export const roles: Role[] = snapshot?.catalog.roles?.length
+  ? snapshot.catalog.roles.filter((role) => isUsableRoleTitle(role.title))
+  : seedRoles
 
 export const locations: Location[] = snapshot?.catalog.locations?.length
   ? snapshot.catalog.locations
@@ -37,11 +67,11 @@ export const datasets: Dataset[] = mergeDatasetCounts(seedDatasets, snapshot?.da
 export const reports: Report[] = seedReports
 
 export const companyRecords: EntityRecord[] = snapshot?.entities.companies?.length
-  ? snapshot.entities.companies.map(stripEntityRecord)
+  ? snapshot.entities.companies.map(stripEntityRecord).filter((record) => isUsableCompanyName(record.name))
   : seedCompanyRecords
 
 export const roleRecords: EntityRecord[] = snapshot?.entities.roles?.length
-  ? snapshot.entities.roles.map(stripEntityRecord)
+  ? snapshot.entities.roles.map(stripEntityRecord).filter((record) => isUsableRoleTitle(record.name))
   : seedRoleRecords
 
 export const locationRecords: EntityRecord[] = snapshot?.entities.locations?.length
@@ -52,9 +82,48 @@ export const industryRecords: EntityRecord[] = snapshot?.entities.industries?.le
   ? snapshot.entities.industries.map(stripEntityRecord)
   : seedIndustryRecords
 
+function companyRows(limit = 10) {
+  return companyRecords
+    .filter((record) => isUsableCompanyName(record.name))
+    .slice()
+    .sort((a, b) => b.metrics.activeJobs - a.metrics.activeJobs)
+    .slice(0, limit)
+    .map((record) => ({
+      company: record.name,
+      "active jobs": record.metrics.activeJobs,
+      "new 7d": record.metrics.newJobs7d,
+      "remote share": `${record.metrics.remoteShare}%`
+    }))
+}
+
+function roleRows(limit = 10) {
+  return roleRecords
+    .filter((record) => isUsableRoleTitle(record.name))
+    .slice()
+    .sort((a, b) => b.metrics.growthWoW - a.metrics.growthWoW || b.metrics.activeJobs - a.metrics.activeJobs)
+    .slice(0, limit)
+    .map((record) => ({
+      role: record.name,
+      "active jobs": record.metrics.activeJobs,
+      "WoW growth": `${record.metrics.growthWoW}%`,
+      "median salary": record.metrics.medianSalary ? `$${record.metrics.medianSalary.toLocaleString()}` : "n/a"
+    }))
+}
+
+function cleanHomeDashboard(dashboard: HomeDashboard): HomeDashboard {
+  const cleanedCompanyRows = companyRows(dashboard.top_hiring_trends.length || 10)
+  const cleanedRoleRows = roleRows(dashboard.fast_growing_roles.length || 10)
+
+  return {
+    ...dashboard,
+    top_hiring_trends: cleanedCompanyRows.length ? cleanedCompanyRows : dashboard.top_hiring_trends,
+    fast_growing_roles: cleanedRoleRows.length ? cleanedRoleRows : dashboard.fast_growing_roles
+  }
+}
+
 export function getHomeDashboard(): HomeDashboard {
   if (snapshot?.dashboards?.home) {
-    return snapshot.dashboards.home
+    return cleanHomeDashboard(snapshot.dashboards.home)
   }
 
   const totalActiveJobs = companyRecords.reduce((sum, record) => sum + record.metrics.activeJobs, 0)
@@ -81,26 +150,8 @@ export function getHomeDashboard(): HomeDashboard {
         detail: "Average across public seed records"
       }
     ],
-    top_hiring_trends: companyRecords
-      .slice()
-      .sort((a, b) => b.metrics.activeJobs - a.metrics.activeJobs)
-      .slice(0, 8)
-      .map((record) => ({
-        Company: record.name,
-        "Active jobs": record.metrics.activeJobs,
-        "New jobs, 7d": record.metrics.newJobs7d,
-        "Remote share": `${record.metrics.remoteShare}%`
-      })),
-    fast_growing_roles: roleRecords
-      .slice()
-      .sort((a, b) => b.metrics.growthWoW - a.metrics.growthWoW)
-      .slice(0, 8)
-      .map((record) => ({
-        Role: record.name,
-        "Active jobs": record.metrics.activeJobs,
-        "WoW growth": `${record.metrics.growthWoW}%`,
-        "Salary coverage": `${record.metrics.salaryCoverage ?? 0}%`
-      }))
+    top_hiring_trends: companyRows(8),
+    fast_growing_roles: roleRows(8)
   }
 }
 
