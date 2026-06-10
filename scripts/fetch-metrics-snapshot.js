@@ -18,6 +18,13 @@ function resolveSnapshotUrl() {
   return `${siteUrl}/.netlify/functions/ingest-job-data-pool?view=snapshot`
 }
 
+function isCsvSnapshot(snapshot) {
+  return (
+    snapshot?.source?.source_format === "csv" ||
+    String(snapshot?.source?.data_url || "").toLowerCase().endsWith(".csv")
+  )
+}
+
 async function main() {
   const url = resolveSnapshotUrl()
   if (!url) {
@@ -38,6 +45,10 @@ async function main() {
   const snapshot = payload?.data || payload
   if (!snapshot?.catalog || !snapshot?.entities) {
     console.warn("fetch-metrics-snapshot: response missing catalog/entities; keeping existing file.")
+    return
+  }
+  if (!isCsvSnapshot(snapshot)) {
+    console.warn("fetch-metrics-snapshot: response is not sourced from listings CSV; keeping existing file.")
     return
   }
 

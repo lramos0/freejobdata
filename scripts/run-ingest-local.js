@@ -6,13 +6,13 @@
 const fs = require("fs")
 const path = require("path")
 const { buildSnapshotFromListings } = require("../netlify/functions/_shared/aggregate-job-listings")
-const { fetchJobListings, LISTINGS_API_JSON_URL } = require("../netlify/functions/_shared/fetch-listings")
+const { fetchJobListings, LISTINGS_CSV_URL } = require("../netlify/functions/_shared/fetch-listings")
 
 const OUTPUT = path.join(process.cwd(), "data", "metrics-snapshot.json")
 const MANIFEST_OUTPUT = path.join(process.cwd(), "data", "metrics-manifest.json")
 
 async function main() {
-  console.log(`run-ingest-local: fetching ${LISTINGS_API_JSON_URL}`)
+  console.log(`run-ingest-local: fetching ${LISTINGS_CSV_URL}`)
   const { items, dataUrl, source, startedAt } = await fetchJobListings()
   console.log(`run-ingest-local: loaded ${items.length} rows`)
 

@@ -12,7 +12,7 @@ const ENTITY_LIMITS = {
 const TREND_MONTH_LABELS = 6
 
 const FIELD_GLOSSARY = {
-  company_name: "Employer label from JobDataPool listings API JSON; rolled up by slugified company_name.",
+  company_name: "Employer label from JobDataPool listings CSV; rolled up by slugified company_name.",
   job_title: "Posting title; rolled up by slugified job_title.",
   job_location: "Location string; rolled up by slugified job_location.",
   job_industries: "Industry tags (comma-separated in source rows); each tag gets its own industry bucket.",
@@ -574,7 +574,7 @@ function buildDashboards(maps, entityBundles, snapshotDate) {
     {
       label: "Active listings",
       value: globalActive.toLocaleString(),
-      detail: "Open rows in listings API JSON (listing_closed false)",
+      detail: "Open rows in listings CSV (listing_closed false)",
     },
     {
       label: "Company pages",
@@ -680,7 +680,8 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
       row_count: items.length,
       active_row_count: globalActive,
       columns_used: Object.keys(FIELD_GLOSSARY),
-      api_json: true,
+      source_format: "csv",
+      masked_urls: true,
     },
     global,
     dashboards,
@@ -705,7 +706,7 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
       seo_thresholds: SEO_THRESHOLDS,
       quality,
       notes: [
-        "All rollups are computed from JobDataPool listings-june-2026-api.json on R2.",
+        "All rollups are computed from JobDataPool listings-june-2026.csv on R2.",
         "Use GET ?view=manifest for run metadata only, or ?view=quality for data-quality counters.",
         "Use GET ?view=rollups for CSV-friendly top-50 tables without loading the full site snapshot.",
       ],

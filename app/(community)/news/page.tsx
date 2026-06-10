@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { buildMetadata } from "@/lib/seo"
-import { reports } from "@/lib/data"
+import { communityArticles } from "@/lib/community-data"
 
 export const metadata = buildMetadata({
   title: "Job Market News",
@@ -17,11 +17,12 @@ export default function NewsPage() {
         <p className="lede">Short research updates, dataset announcements, and labor market signal notes from FreeJobData.</p>
       </section>
       <section className="section grid">
-        {reports.slice(0, 4).map((report) => (
-          <Link className="card" href={`/reports/${report.slug}`} key={report.slug}>
-            <span className="pill">{report.updatedAt}</span>
-            <h3>{report.title}</h3>
-            <p className="muted">{report.summary}</p>
+        {communityArticles.map((article) => (
+          <Link className="card" href={`/news/${article.id}`} key={article.id}>
+            <span className="pill">{article.author} · {article.publishedAt}</span>
+            <h3>{article.title}</h3>
+            <p className="muted">{article.summary}</p>
+            <span className="muted">{article.sources?.length ? `${article.sourceCount} cited sources` : `${article.sourceCount} corroborating postings`}</span>
           </Link>
         ))}
       </section>

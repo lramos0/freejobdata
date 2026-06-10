@@ -12,6 +12,8 @@ export type CommunityArticleSnapshot = {
   id: string
   title: string
   summary: string
+  body?: string[]
+  sources?: { label: string; href: string }[]
   author: string
   type: "team" | "community"
   publishedAt: string

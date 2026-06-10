@@ -6,6 +6,8 @@ import type { JobPostingLocationSignal } from "@/lib/community-data"
 type JobIntelPulseLayerProps = {
   data: JobPostingLocationSignal[]
   selectedLocationId?: string
+  showArcs?: boolean
+  showLabels?: boolean
 }
 
 const headquarters: [number, number] = [-98.5795, 39.8283]
@@ -17,12 +19,13 @@ export class JobIntelPulseLayer extends CompositeLayer<JobIntelPulseLayerProps> 
   }
 
   renderLayers() {
-    const { data, selectedLocationId } = this.props
+    const { data, selectedLocationId, showArcs = true, showLabels = true } = this.props
     const selected = selectedLocationId ? data.find((location) => location.id === selectedLocationId) : undefined
     const arcData = selected ? [selected] : data.filter((location) => location.signalScore >= 82)
 
     return [
-      new ArcLayer<JobPostingLocationSignal>(
+      showArcs
+        ? new ArcLayer<JobPostingLocationSignal>(
         this.getSubLayerProps({
           id: "job-signal-flows",
           data: arcData,
@@ -34,7 +37,8 @@ export class JobIntelPulseLayer extends CompositeLayer<JobIntelPulseLayerProps> 
           greatCircle: true,
           pickable: false
         })
-      ),
+          )
+        : null,
       new ScatterplotLayer<JobPostingLocationSignal>(
         this.getSubLayerProps({
           id: "job-location-pulses",
@@ -58,7 +62,8 @@ export class JobIntelPulseLayer extends CompositeLayer<JobIntelPulseLayerProps> 
           ]
         })
       ),
-      new TextLayer<JobPostingLocationSignal>(
+      showLabels
+        ? new TextLayer<JobPostingLocationSignal>(
         this.getSubLayerProps({
           id: "job-location-labels",
           data,
@@ -74,7 +79,8 @@ export class JobIntelPulseLayer extends CompositeLayer<JobIntelPulseLayerProps> 
           backgroundPadding: [8, 5],
           pickable: false
         })
-      )
-    ]
+          )
+        : null
+    ].filter(Boolean)
   }
 }

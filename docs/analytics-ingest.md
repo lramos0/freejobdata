@@ -1,14 +1,14 @@
 # Analytics ingest (`ingest-job-data-pool`)
 
-FreeJobData’s metrics cron loads **JobDataPool listings API JSON** from R2, aggregates company/role/location/industry metrics, and stores analyst-friendly JSON in Netlify Blobs. The static site reads `data/metrics-snapshot.json` at build time.
+FreeJobData’s metrics cron loads **JobDataPool listings CSV** from R2, aggregates company/role/location/industry metrics, and stores analyst-friendly JSON in Netlify Blobs. The static site reads `data/metrics-snapshot.json` at build time.
 
 ## Source data (hardcoded)
 
 ```
-https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026-api.json
+https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026.csv
 ```
 
-Defined in `netlify/functions/_shared/fetch-listings.js` as `LISTINGS_API_JSON_URL`. No env vars are required for the ingest source.
+Defined in `netlify/functions/_shared/fetch-listings.js` as `LISTINGS_CSV_URL`. No env vars are required for the ingest source.
 
 ## Run locally (no Netlify)
 
@@ -31,7 +31,7 @@ Function: `/.netlify/functions/ingest-job-data-pool`
 
 | Method | Behavior |
 | --- | --- |
-| Scheduled (no `httpMethod`) | Full ingest from API JSON → Netlify Blobs |
+| Scheduled (no `httpMethod`) | Full ingest from CSV → Netlify Blobs |
 | `POST` | Same as scheduled |
 | `GET ?view=…` | Read last snapshot from Blobs |
 
@@ -84,4 +84,4 @@ After the first scheduled ingest, trigger a new deploy so the site pulls the blo
 1. Run `npm run ingest:local` to validate listing changes before deploy.
 2. Inspect `data/metrics-manifest.json` for row counts and quality flags.
 3. Open entity rollups via `?view=rollups` in production.
-4. To point at a new month’s file, edit `LISTINGS_API_JSON_URL` in `fetch-listings.js`.
+4. To point at a new month’s file, edit `LISTINGS_CSV_URL` in `fetch-listings.js`.

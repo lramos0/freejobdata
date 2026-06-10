@@ -48,7 +48,7 @@ The community page reads Firebase ID-token custom claims client-side for display
 
 Server-side writes still need enforcement through Firebase Security Rules or a trusted API that verifies ID tokens.
 
-Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026-api.json` on R2). Downloadable datasets come from the sibling public R2 `listings-june-2026.csv` object and are cached per dataset slug. See [docs/analytics-ingest.md](docs/analytics-ingest.md).
+Live metrics come from **`ingest-job-data-pool`** (Netlify cron over JobDataPool `listings-june-2026.csv` on R2, preserving masked `jobrd` URLs). Downloadable datasets come from the same public R2 CSV object and are cached per dataset slug. See [docs/analytics-ingest.md](docs/analytics-ingest.md).
 
 ```bash
 npm run ingest:local   # write data/metrics-snapshot.json for local dev / validation

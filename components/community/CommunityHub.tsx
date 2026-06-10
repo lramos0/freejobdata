@@ -1,7 +1,7 @@
 ﻿"use client"
 
-import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import type { User } from "firebase/auth"
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth"
 import {
@@ -32,7 +32,6 @@ export function CommunityHub() {
   const [user, setUser] = useState<User | null>(null)
   const [role, setRole] = useState<CommunityRole>("community")
   const firebaseConfigured = hasFirebaseConfig()
-  const [authReady, setAuthReady] = useState(!firebaseConfigured)
   const [authBusy, setAuthBusy] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const auth = useMemo(() => getFirebaseAuth(), [])
@@ -55,8 +54,6 @@ export function CommunityHub() {
       } catch {
         setRole("community")
         setAuthError("Signed in, but we could not read your community role yet.")
-      } finally {
-        setAuthReady(true)
       }
     })
   }, [auth])
@@ -107,48 +104,6 @@ export function CommunityHub() {
 
   return (
     <div className="community-page">
-      <section className="community-hero">
-        <div>
-          <p className="eyebrow">Open source job intelligence</p>
-          <h1>Community-powered signals from the JobDataPool graph.</h1>
-          <p className="lede">
-            Read automated FreeJobData Team briefings, submit community observations, and follow the hiring signals
-            that deserve a second look.
-          </p>
-          <div className="pill-row">
-            <button className="button" type="button" onClick={() => setMode("maps")}>
-              Open Maps
-            </button>
-            <a className="button secondary" href="https://jobdatapool.com/#api">
-              JobDataPool API
-            </a>
-          </div>
-        </div>
-        <div className="community-auth-card">
-          <span className="pill">{authReady ? roleCopy(role) : "Checking auth…"}</span>
-          <h3>{user ? user.displayName ?? user.email : "Join the intelligence desk"}</h3>
-          <p className="muted">
-            Firebase Auth separates FreeJobData Team publishers from community contributors through ID-token custom
-            claims.
-          </p>
-          <div className="pill-row">
-            {user ? (
-              <button className="button secondary" type="button" onClick={handleSignOut} disabled={authBusy}>
-                {authBusy ? "Signing out…" : "Sign out"}
-              </button>
-            ) : (
-              <button className="button" type="button" onClick={handleSignIn} disabled={authBusy}>
-                {authBusy ? "Opening Google…" : "Sign in with Google"}
-              </button>
-            )}
-          </div>
-          {!firebaseConfigured ? (
-            <small className="auth-warning">Firebase env vars are not configured yet; community mode is preview-only.</small>
-          ) : null}
-          {authError ? <small className="auth-warning">{authError}</small> : null}
-        </div>
-      </section>
-
       <div className="community-view-switch community-mode-switch" role="tablist" aria-label="Community sections">
         {[
           ["news", "news", "FreeJobData and community articles"],
@@ -221,19 +176,6 @@ export function CommunityHub() {
 
       {mode === "maps" ? (
         <section className="community-map-mode">
-          <div className="community-mode-hero map-mode-hero">
-            <div>
-              <p className="eyebrow">maps</p>
-              <h2>Hiring geography, rendered inside the community console.</h2>
-              <p className="lede">
-                Same Deck.gl JobIntelPulseLayer, now one click away from articles, S&P forums, Reddit signals, and your
-                user profile.
-              </p>
-            </div>
-            <Link className="button secondary" href="/maps">
-              Open full map page
-            </Link>
-          </div>
           <CommunityMap />
         </section>
       ) : null}
@@ -266,13 +208,19 @@ function ArticleCard({ article }: { article: CommunityArticle }) {
         <span className="intel-badge dark">{article.factuality}</span>
         <span className="intel-badge light">{article.confidence}% confidence</span>
       </div>
-      <h3>{article.title}</h3>
+      <h3>
+        {article.body?.length ? <Link href={`/news/${article.id}`}>{article.title}</Link> : article.title}
+      </h3>
       <p>{article.summary}</p>
       <div className="article-meta-row">
         <span>{article.publishedAt}</span>
         <span>{article.role}</span>
-        <span>{article.sourceCount} corroborating postings</span>
-        <a href="https://jobdatapool.com/#api">Open source data</a>
+        <span>{article.sources?.length ? `${article.sourceCount} cited sources` : `${article.sourceCount} corroborating postings`}</span>
+        {article.body?.length ? (
+          <Link href={`/news/${article.id}`}>Read article</Link>
+        ) : (
+          <a href="https://jobdatapool.com/#api">Open source data</a>
+        )}
       </div>
       <div className="pill-row">
         {article.tags.map((tag) => (

@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/search", "/debug", "/internal"]
       }
     ],
-    sitemap: absoluteUrl("/sitemap.xml"),
+    sitemap: [absoluteUrl("/sitemap.xml"), absoluteUrl("/news-sitemap.xml")],
     host: siteUrl
   }
 }

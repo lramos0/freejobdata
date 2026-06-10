@@ -14,10 +14,17 @@ function hasSnapshot() {
   if (!fs.existsSync(OUTPUT)) return false
   try {
     const parsed = JSON.parse(fs.readFileSync(OUTPUT, "utf8"))
-    return Boolean(parsed?.entities?.companies?.length)
+    return Boolean(parsed?.entities?.companies?.length && isCsvSnapshot(parsed))
   } catch {
     return false
   }
+}
+
+function isCsvSnapshot(snapshot) {
+  return (
+    snapshot?.source?.source_format === "csv" ||
+    String(snapshot?.source?.data_url || "").toLowerCase().endsWith(".csv")
+  )
 }
 
 async function tryFetch() {
@@ -40,6 +47,10 @@ async function tryFetch() {
     console.warn("ensure-metrics-snapshot: fetched payload missing entities")
     return false
   }
+  if (!isCsvSnapshot(snapshot)) {
+    console.warn("ensure-metrics-snapshot: fetched payload is not sourced from listings CSV")
+    return false
+  }
 
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true })
   fs.writeFileSync(OUTPUT, JSON.stringify(snapshot, null, 2))
@@ -47,13 +58,13 @@ async function tryFetch() {
 }
 
 async function main() {
-  if (hasSnapshot()) {
-    console.log("ensure-metrics-snapshot: using existing data/metrics-snapshot.json")
+  if (await tryFetch()) {
+    console.log("ensure-metrics-snapshot: hydrated from Netlify function")
     return
   }
 
-  if (await tryFetch()) {
-    console.log("ensure-metrics-snapshot: hydrated from Netlify function")
+  if (hasSnapshot()) {
+    console.log("ensure-metrics-snapshot: using existing data/metrics-snapshot.json")
     return
   }
 

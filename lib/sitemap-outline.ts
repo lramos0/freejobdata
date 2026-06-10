@@ -7,6 +7,7 @@ import {
   reports,
   roleRecords
 } from "@/lib/data"
+import { communityArticles } from "@/lib/community-data"
 import { absoluteUrl } from "@/lib/seo"
 import { SITE_SITELINKS } from "@/lib/site-hubs"
 import { shouldIndexPage } from "@/lib/thresholds"
@@ -91,7 +92,15 @@ export function buildContentSitemap(): MetadataRoute.Sitemap {
     })
   )
 
-  return [...datasetEntries, ...reportEntries]
+  const newsEntries = communityArticles.map((article) =>
+    entry(`/news/${article.id}`, {
+      lastModified: article.publishedAt,
+      changeFrequency: "weekly",
+      priority: 0.65
+    })
+  )
+
+  return [...datasetEntries, ...reportEntries, ...newsEntries]
 }
 
 export const SITEMAP_SECTIONS = [
