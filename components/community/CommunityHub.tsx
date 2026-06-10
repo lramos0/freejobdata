@@ -12,12 +12,21 @@ import {
 } from "@/lib/community-data"
 import { getFirebaseAuth, hasFirebaseConfig, roleFromClaims, type CommunityRole } from "@/lib/firebase"
 import { CommunityMap } from "./CommunityMap"
-import { JobMarketNews } from "./JobMarketNews"
 import { RedditInsights } from "./RedditInsights"
 import { Sp500JobsForum } from "./Sp500JobsForum"
 
 type Filter = "all" | CommunityArticleType
 type CommunityMode = "news" | "maps" | "sp500" | "reddit" | "settings"
+type CommunityFeedArticle = CommunityArticle & {
+  externalUrl?: string
+  sourceName?: string
+  sourceUrl?: string
+}
+type JobMarketNewsResponse = {
+  ok: boolean
+  articles?: CommunityFeedArticle[]
+  error?: string
+}
 
 function sourceLabel(type: CommunityArticleType) {
   return type === "team" ? "FreeJobData Team" : "Community Intel"
@@ -25,6 +34,84 @@ function sourceLabel(type: CommunityArticleType) {
 
 function roleCopy(role: CommunityRole) {
   return role === "team" ? "FreeJobData Team publisher" : "Community contributor"
+}
+
+function feedArticleBreakdown(articles: CommunityFeedArticle[]) {
+  const team = articles.filter((article) => article.type === "team").length
+  const external = articles.filter((article) => article.externalUrl).length
+  const community = articles.length - team - external
+  const highSignal = articles.filter((article) => article.factuality === "High Signal").length
+
+  return {
+    total: articles.length,
+    team,
+    community,
+    external,
+    highSignal,
+    averageConfidence: Math.round(
+      articles.reduce((sum, article) => sum + article.confidence, 0) / Math.max(articles.length, 1)
+    )
+  }
+}
+
+const positiveTerms = [
+  "added",
+  "beat",
+  "booming",
+  "drop in unemployment",
+  "gains",
+  "growth",
+  "hiring",
+  "increase",
+  "jobs growth",
+  "resilient",
+  "rose",
+  "strong",
+  "wage gains"
+]
+
+const negativeTerms = [
+  "cuts",
+  "decline",
+  "downturn",
+  "fell",
+  "freeze",
+  "jobless claims",
+  "layoff",
+  "layoffs",
+  "recession",
+  "sinks",
+  "slows",
+  "slump",
+  "unemployment",
+  "weak"
+]
+
+function sentimentForArticle(article: CommunityFeedArticle) {
+  const text = `${article.title} ${article.summary} ${article.tags.join(" ")}`.toLowerCase()
+  const positive = positiveTerms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0)
+  const negative = negativeTerms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0)
+
+  if (positive > negative) return "positive"
+  if (negative > positive) return "negative"
+  return "neutral"
+}
+
+function sentimentBreakdown(articles: CommunityFeedArticle[]) {
+  const counts = articles.reduce(
+    (result, article) => {
+      result[sentimentForArticle(article)] += 1
+      return result
+    },
+    { positive: 0, negative: 0, neutral: 0 }
+  )
+  const directionalTotal = counts.positive + counts.negative
+
+  return {
+    ...counts,
+    positiveShare: directionalTotal ? Math.round((counts.positive / directionalTotal) * 100) : 50,
+    negativeShare: directionalTotal ? Math.round((counts.negative / directionalTotal) * 100) : 50
+  }
 }
 
 export function CommunityHub() {
@@ -35,6 +122,9 @@ export function CommunityHub() {
   const firebaseConfigured = hasFirebaseConfig()
   const [authBusy, setAuthBusy] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+  const [externalArticles, setExternalArticles] = useState<CommunityFeedArticle[]>([])
+  const [externalArticlesLoading, setExternalArticlesLoading] = useState(false)
+  const [externalArticlesError, setExternalArticlesError] = useState<string | null>(null)
   const auth = useMemo(() => getFirebaseAuth(), [])
 
   useEffect(() => {
@@ -50,6 +140,8 @@ export function CommunityHub() {
           setRole(roleFromClaims(token.claims))
         } else {
           setRole("community")
+          setExternalArticles([])
+          setExternalArticlesError(null)
         }
         setAuthError(null)
       } catch {
@@ -59,11 +151,66 @@ export function CommunityHub() {
     })
   }, [auth])
 
+  useEffect(() => {
+    const currentUser = user
+    if (!currentUser) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    async function loadExternalArticles(activeUser: User) {
+      setExternalArticlesLoading(true)
+      setExternalArticlesError(null)
+
+      try {
+        const params = new URLSearchParams({
+          source: "all",
+          limit: "6",
+          days: "21"
+        })
+        const token = await activeUser.getIdToken()
+        const response = await fetch(`/.netlify/functions/job-market-news?${params.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          signal: controller.signal
+        })
+        const data = (await response.json()) as JobMarketNewsResponse
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Job market news failed.")
+        }
+
+        setExternalArticles(data.articles || [])
+      } catch (nextError) {
+        if (controller.signal.aborted) return
+        setExternalArticlesError(nextError instanceof Error ? nextError.message : "Job market news failed.")
+      } finally {
+        if (!controller.signal.aborted) {
+          setExternalArticlesLoading(false)
+        }
+      }
+    }
+
+    loadExternalArticles(currentUser)
+
+    return () => controller.abort()
+  }, [user])
+
   const articles = useMemo(
-    () => communityArticles.filter((article) => filter === "all" || article.type === filter),
-    [filter]
+    () =>
+      filter === "all"
+        ? [...(user ? externalArticles : []), ...communityArticles].sort((first, second) =>
+            second.publishedAt.localeCompare(first.publishedAt)
+          )
+        : communityArticles.filter((article) => article.type === filter),
+    [externalArticles, filter, user]
   )
   const breakdown = communityArticleBreakdown(communityArticles)
+  const totalArticleCount = breakdown.total + (user ? externalArticles.length : 0)
+  const visibleBreakdown = feedArticleBreakdown(articles)
+  const visibleSentiment = sentimentBreakdown(articles)
 
   async function handleSignIn() {
     if (!auth) {
@@ -131,10 +278,10 @@ export function CommunityHub() {
         <section className="community-intel-layout">
           <div className="community-feed-panel">
             <div className="community-feed-header">
-              <h2>{breakdown.total} Articles</h2>
+              <h2>{totalArticleCount} Articles</h2>
               <div className="community-tabs">
                 {[
-                  ["all", "All", breakdown.total],
+                  ["all", "All", totalArticleCount],
                   ["team", "Team", breakdown.team],
                   ["community", "Community", breakdown.community]
                 ].map(([nextFilter, label, count]) => (
@@ -158,15 +305,21 @@ export function CommunityHub() {
               </label>
             </div>
             <div className="community-article-list">
+              {user && filter === "all" && externalArticlesLoading ? (
+                <div className="community-feed-status">Loading current job-market headlines...</div>
+              ) : null}
+              {user && filter === "all" && externalArticlesError ? (
+                <div className="community-feed-status warning">{externalArticlesError}</div>
+              ) : null}
               {articles.map((article) => (
                 <ArticleCard article={article} key={article.id} />
               ))}
             </div>
           </div>
           <aside className="community-detail-panel">
-            <JobMarketNews signedIn={Boolean(user)} />
-            <CoverageDetails breakdown={breakdown} />
-            <SignalDistribution articles={communityArticles} />
+            <CoverageDetails breakdown={visibleBreakdown} />
+            <SignalDistribution articles={articles} />
+            <SentimentGauge sentiment={visibleSentiment} />
             <ContributorComposer role={role} signedIn={Boolean(user)} />
           </aside>
         </section>
@@ -197,7 +350,10 @@ export function CommunityHub() {
   )
 }
 
-function ArticleCard({ article }: { article: CommunityArticle }) {
+function ArticleCard({ article }: { article: CommunityFeedArticle }) {
+  const isExternalArticle = Boolean(article.externalUrl)
+  const sourceName = article.sourceName || article.author
+
   return (
     <article className="community-article-card">
       <div className="article-source-row">
@@ -206,19 +362,31 @@ function ArticleCard({ article }: { article: CommunityArticle }) {
         <span className="muted">· {article.location}</span>
       </div>
       <div className="article-badge-row">
-        <span className={`intel-badge ${article.type}`}>{sourceLabel(article.type)}</span>
+        <span className={`intel-badge ${article.type}`}>{isExternalArticle ? sourceName : sourceLabel(article.type)}</span>
         <span className="intel-badge dark">{article.factuality}</span>
-        <span className="intel-badge light">{article.confidence}% confidence</span>
+        <span className="intel-badge light">{article.confidence}% {isExternalArticle ? "match" : "confidence"}</span>
       </div>
       <h3>
-        {article.body?.length ? <Link href={`/news/${article.id}`}>{article.title}</Link> : article.title}
+        {isExternalArticle ? (
+          <a href={article.externalUrl} target="_blank" rel="nofollow noopener noreferrer">
+            {article.title}
+          </a>
+        ) : article.body?.length ? (
+          <Link href={`/news/${article.id}`}>{article.title}</Link>
+        ) : (
+          article.title
+        )}
       </h3>
       <p>{article.summary}</p>
       <div className="article-meta-row">
         <span>{article.publishedAt}</span>
         <span>{article.role}</span>
         <span>{article.sources?.length ? `${article.sourceCount} cited sources` : `${article.sourceCount} corroborating postings`}</span>
-        {article.body?.length ? (
+        {isExternalArticle ? (
+          <a href={article.externalUrl} target="_blank" rel="nofollow noopener noreferrer">
+            Read source
+          </a>
+        ) : article.body?.length ? (
           <Link href={`/news/${article.id}`}>Read article</Link>
         ) : (
           <a href="https://jobdatapool.com/#api">Open source data</a>
@@ -235,17 +403,19 @@ function ArticleCard({ article }: { article: CommunityArticle }) {
   )
 }
 
-function CoverageDetails({ breakdown }: { breakdown: ReturnType<typeof communityArticleBreakdown> }) {
+function CoverageDetails({ breakdown }: { breakdown: ReturnType<typeof feedArticleBreakdown> }) {
   return (
     <section className="community-side-card">
       <h3>Coverage Details</h3>
       <dl>
-        <dt>Total Intelligence Briefs</dt>
+        <dt>Visible Briefs</dt>
         <dd>{breakdown.total}</dd>
         <dt>FreeJobData Team</dt>
         <dd>{breakdown.team}</dd>
         <dt>Community</dt>
         <dd>{breakdown.community}</dd>
+        <dt>External Sources</dt>
+        <dd>{breakdown.external}</dd>
         <dt>High-Signal Briefs</dt>
         <dd>{breakdown.highSignal}</dd>
         <dt>Avg. Confidence</dt>
@@ -255,25 +425,57 @@ function CoverageDetails({ breakdown }: { breakdown: ReturnType<typeof community
   )
 }
 
-function SignalDistribution({ articles }: { articles: CommunityArticle[] }) {
-  const teamWidth = Math.round((articles.filter((article) => article.type === "team").length / articles.length) * 100)
-  const communityWidth = 100 - teamWidth
+function SignalDistribution({ articles }: { articles: CommunityFeedArticle[] }) {
+  const total = Math.max(articles.length, 1)
+  const teamWidth = Math.round((articles.filter((article) => article.type === "team").length / total) * 100)
+  const externalWidth = Math.round((articles.filter((article) => article.externalUrl).length / total) * 100)
+  const communityWidth = Math.max(0, 100 - teamWidth - externalWidth)
 
   return (
     <section className="community-side-card">
       <h3>Source Distribution ↗</h3>
-      <p>Signals blend automated JobDataPool analysis with human OSINT review.</p>
+      <p>Signals blend FreeJobData analysis, reviewed community intel, and signed-in source headlines.</p>
       <div className="distribution-bar" aria-label="Article source distribution">
-        <span style={{ width: `${teamWidth}%` }}>Team {teamWidth}%</span>
-        <span style={{ width: `${communityWidth}%` }}>Community {communityWidth}%</span>
+        {teamWidth ? <span className="team" style={{ width: `${teamWidth}%` }}>Team {teamWidth}%</span> : null}
+        {communityWidth ? (
+          <span className="community" style={{ width: `${communityWidth}%` }}>Community {communityWidth}%</span>
+        ) : null}
+        {externalWidth ? (
+          <span className="external" style={{ width: `${externalWidth}%` }}>External {externalWidth}%</span>
+        ) : null}
       </div>
       <div className="source-columns">
         {articles.slice(0, 5).map((article) => (
           <span className={`source-token ${article.type}`} key={article.id}>
-            {article.type === "team" ? "FJD" : article.author.slice(0, 2).toUpperCase()}
+            {article.externalUrl ? article.author.slice(0, 2).toUpperCase() : article.type === "team" ? "FJD" : article.author.slice(0, 2).toUpperCase()}
           </span>
         ))}
       </div>
+    </section>
+  )
+}
+
+function SentimentGauge({ sentiment }: { sentiment: ReturnType<typeof sentimentBreakdown> }) {
+  return (
+    <section className="community-side-card">
+      <h3>Sentiment Gauge</h3>
+      <p>Directional read from visible titles, summaries, and tags.</p>
+      <div className="sentiment-gauge" aria-label="Positive versus negative job market sentiment">
+        <span className="positive" style={{ width: `${sentiment.positiveShare}%` }}>
+          Positive {sentiment.positiveShare}%
+        </span>
+        <span className="negative" style={{ width: `${sentiment.negativeShare}%` }}>
+          Negative {sentiment.negativeShare}%
+        </span>
+      </div>
+      <dl>
+        <dt>Positive</dt>
+        <dd>{sentiment.positive}</dd>
+        <dt>Negative</dt>
+        <dd>{sentiment.negative}</dd>
+        <dt>Neutral</dt>
+        <dd>{sentiment.neutral}</dd>
+      </dl>
     </section>
   )
 }

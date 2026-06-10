@@ -1,15 +1,19 @@
+const crypto = require("crypto")
+
 const DEFAULT_LIMIT = 8
 const MAX_LIMIT = 24
 const DEFAULT_DAYS = 14
 const MAX_DAYS = 45
 const REQUEST_TIMEOUT_MS = 7000
+const FIREBASE_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
 
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
-  "cache-control": "public, max-age=900, stale-while-revalidate=1800",
+  "cache-control": "private, no-store",
+  "vary": "Authorization",
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, OPTIONS",
-  "access-control-allow-headers": "Content-Type",
+  "access-control-allow-headers": "Authorization, Content-Type",
 }
 
 const SOURCE_QUERIES = [
@@ -73,11 +77,127 @@ let memoryCache = {
   payload: null,
 }
 
+let firebaseCertCache = {
+  expiresAt: 0,
+  certs: null,
+}
+
 function jsonResponse(payload, statusCode = 200) {
   return {
     statusCode,
     headers: JSON_HEADERS,
     body: JSON.stringify(payload, null, 2),
+  }
+}
+
+function projectId() {
+  return process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ""
+}
+
+function authorizationToken(event) {
+  const headers = event?.headers || {}
+  const value = headers.authorization || headers.Authorization || ""
+  const match = String(value).match(/^Bearer\s+(.+)$/i)
+  return match ? match[1].trim() : ""
+}
+
+function base64UrlToBuffer(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/")
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")
+  return Buffer.from(padded, "base64")
+}
+
+function parseJwtPart(value) {
+  return JSON.parse(base64UrlToBuffer(value).toString("utf8"))
+}
+
+function certCacheMs(cacheControl) {
+  const match = String(cacheControl || "").match(/max-age=(\d+)/i)
+  const seconds = match ? Number.parseInt(match[1], 10) : 3600
+  return Math.max(60, Math.min(seconds || 3600, 21600)) * 1000
+}
+
+async function firebaseCerts() {
+  if (firebaseCertCache.certs && firebaseCertCache.expiresAt > Date.now()) {
+    return firebaseCertCache.certs
+  }
+
+  const response = await fetch(FIREBASE_CERTS_URL, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "freejobdata-job-market-news/0.1",
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Firebase cert fetch failed (HTTP ${response.status}).`)
+  }
+
+  const certs = await response.json()
+  firebaseCertCache = {
+    certs,
+    expiresAt: Date.now() + certCacheMs(response.headers.get("cache-control")),
+  }
+  return certs
+}
+
+async function verifyFirebaseIdToken(event) {
+  const token = authorizationToken(event)
+  const firebaseProjectId = projectId()
+
+  if (!token) {
+    return { ok: false, statusCode: 401, error: "Authentication required." }
+  }
+
+  if (!firebaseProjectId) {
+    return { ok: false, statusCode: 503, error: "Firebase project ID is not configured." }
+  }
+
+  const parts = token.split(".")
+  if (parts.length !== 3) {
+    return { ok: false, statusCode: 401, error: "Invalid authentication token." }
+  }
+
+  try {
+    const [encodedHeader, encodedPayload, encodedSignature] = parts
+    const header = parseJwtPart(encodedHeader)
+    const claims = parseJwtPart(encodedPayload)
+    const now = Math.floor(Date.now() / 1000)
+
+    if (header.alg !== "RS256" || !header.kid) {
+      return { ok: false, statusCode: 401, error: "Invalid authentication token." }
+    }
+
+    if (
+      claims.aud !== firebaseProjectId ||
+      claims.iss !== `https://securetoken.google.com/${firebaseProjectId}` ||
+      typeof claims.sub !== "string" ||
+      !claims.sub ||
+      claims.sub.length > 128 ||
+      Number(claims.exp || 0) <= now ||
+      Number(claims.iat || 0) > now + 300
+    ) {
+      return { ok: false, statusCode: 401, error: "Invalid authentication token." }
+    }
+
+    const certs = await firebaseCerts()
+    const cert = certs[header.kid]
+    if (!cert) {
+      return { ok: false, statusCode: 401, error: "Invalid authentication token." }
+    }
+
+    const verifier = crypto.createVerify("RSA-SHA256")
+    verifier.update(`${encodedHeader}.${encodedPayload}`)
+    verifier.end()
+
+    if (!verifier.verify(cert, base64UrlToBuffer(encodedSignature))) {
+      return { ok: false, statusCode: 401, error: "Invalid authentication token." }
+    }
+
+    return { ok: true, claims }
+  } catch (error) {
+    console.warn("job-market-news auth failed:", error?.message || error)
+    return { ok: false, statusCode: 401, error: "Invalid authentication token." }
   }
 }
 
@@ -350,6 +470,11 @@ exports.handler = async (event) => {
   const method = String(event?.httpMethod || "GET").toUpperCase()
   if (method !== "GET") {
     return jsonResponse({ ok: false, error: "Method not allowed." }, 405)
+  }
+
+  const authResult = await verifyFirebaseIdToken(event)
+  if (!authResult.ok) {
+    return jsonResponse({ ok: false, error: authResult.error }, authResult.statusCode)
   }
 
   const qs = event?.queryStringParameters || {}
