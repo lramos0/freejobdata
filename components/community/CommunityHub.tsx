@@ -12,6 +12,7 @@ import {
 } from "@/lib/community-data"
 import { getFirebaseAuth, hasFirebaseConfig, roleFromClaims, type CommunityRole } from "@/lib/firebase"
 import { CommunityMap } from "./CommunityMap"
+import { JobMarketNews } from "./JobMarketNews"
 import { RedditInsights } from "./RedditInsights"
 import { Sp500JobsForum } from "./Sp500JobsForum"
 
@@ -163,6 +164,7 @@ export function CommunityHub() {
             </div>
           </div>
           <aside className="community-detail-panel">
+            <JobMarketNews signedIn={Boolean(user)} />
             <CoverageDetails breakdown={breakdown} />
             <SignalDistribution articles={communityArticles} />
             <ContributorComposer role={role} signedIn={Boolean(user)} />
