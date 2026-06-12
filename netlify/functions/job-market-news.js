@@ -1,4 +1,5 @@
 const crypto = require("crypto")
+const { firebaseProjectId } = require("./_shared/firebase-project-id")
 
 const DEFAULT_LIMIT = 8
 const MAX_LIMIT = 24
@@ -90,10 +91,6 @@ function jsonResponse(payload, statusCode = 200) {
   }
 }
 
-function projectId() {
-  return process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ""
-}
-
 function authorizationToken(event) {
   const headers = event?.headers || {}
   const value = headers.authorization || headers.Authorization || ""
@@ -143,13 +140,13 @@ async function firebaseCerts() {
 
 async function verifyFirebaseIdToken(event) {
   const token = authorizationToken(event)
-  const firebaseProjectId = projectId()
+  const projectId = firebaseProjectId()
 
   if (!token) {
     return { ok: false, statusCode: 401, error: "Authentication required." }
   }
 
-  if (!firebaseProjectId) {
+  if (!projectId) {
     return { ok: false, statusCode: 503, error: "Firebase project ID is not configured." }
   }
 
@@ -169,8 +166,8 @@ async function verifyFirebaseIdToken(event) {
     }
 
     if (
-      claims.aud !== firebaseProjectId ||
-      claims.iss !== `https://securetoken.google.com/${firebaseProjectId}` ||
+      claims.aud !== projectId ||
+      claims.iss !== `https://securetoken.google.com/${projectId}` ||
       typeof claims.sub !== "string" ||
       !claims.sub ||
       claims.sub.length > 128 ||

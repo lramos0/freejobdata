@@ -1249,6 +1249,8 @@ th {
 .map-location-list {
   display: grid;
   gap: 0.45rem;
+  max-height: 22rem;
+  overflow-y: auto;
   padding-top: 0.9rem;
   border-top: 1px solid rgb(148 163 184 / 0.24);
 }

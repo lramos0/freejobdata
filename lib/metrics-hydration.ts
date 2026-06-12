@@ -1,4 +1,5 @@
 import type { EntityRecord, EntityType } from "./types"
+import { resolveLocationCoordinates } from "./location-coordinates"
 import { readMetricsSnapshot } from "./metrics-snapshot-runtime"
 import type { MetricsSnapshotFile } from "./metrics-snapshot"
 
@@ -94,6 +95,105 @@ const fallbackLocationSignals: JobPostingLocationSignalSnapshot[] = [
     signalScore: 69,
     dominantRole: "Security Engineer",
     industry: "Healthcare"
+  },
+  {
+    id: "los-angeles-ca",
+    name: "Los Angeles, CA",
+    coordinates: [-118.2437, 34.0522],
+    activeJobs: 480,
+    newJobs7d: 61,
+    remoteShare: 33.4,
+    signalScore: 67,
+    dominantRole: "Product Designer",
+    industry: "Media"
+  },
+  {
+    id: "chicago-il",
+    name: "Chicago, IL",
+    coordinates: [-87.6298, 41.8781],
+    activeJobs: 455,
+    newJobs7d: 58,
+    remoteShare: 31.2,
+    signalScore: 65,
+    dominantRole: "Operations Manager",
+    industry: "Financial Services"
+  },
+  {
+    id: "denver-co",
+    name: "Denver, CO",
+    coordinates: [-104.9903, 39.7392],
+    activeJobs: 420,
+    newJobs7d: 54,
+    remoteShare: 39.8,
+    signalScore: 63,
+    dominantRole: "Account Executive",
+    industry: "Software"
+  },
+  {
+    id: "boston-ma",
+    name: "Boston, MA",
+    coordinates: [-71.0589, 42.3601],
+    activeJobs: 395,
+    newJobs7d: 49,
+    remoteShare: 34.6,
+    signalScore: 61,
+    dominantRole: "Clinical Research Associate",
+    industry: "Healthcare"
+  },
+  {
+    id: "atlanta-ga",
+    name: "Atlanta, GA",
+    coordinates: [-84.388, 33.749],
+    activeJobs: 370,
+    newJobs7d: 47,
+    remoteShare: 37.1,
+    signalScore: 59,
+    dominantRole: "Customer Success Manager",
+    industry: "Logistics"
+  },
+  {
+    id: "dallas-tx",
+    name: "Dallas, TX",
+    coordinates: [-96.797, 32.7767],
+    activeJobs: 350,
+    newJobs7d: 44,
+    remoteShare: 35.5,
+    signalScore: 57,
+    dominantRole: "Business Analyst",
+    industry: "Retail"
+  },
+  {
+    id: "washington-dc",
+    name: "Washington, DC",
+    coordinates: [-77.0369, 38.9072],
+    activeJobs: 330,
+    newJobs7d: 41,
+    remoteShare: 28.9,
+    signalScore: 55,
+    dominantRole: "Policy Analyst",
+    industry: "Government"
+  },
+  {
+    id: "miami-fl",
+    name: "Miami, FL",
+    coordinates: [-80.1918, 25.7617],
+    activeJobs: 310,
+    newJobs7d: 39,
+    remoteShare: 32.7,
+    signalScore: 53,
+    dominantRole: "Hospitality Manager",
+    industry: "Hospitality"
+  },
+  {
+    id: "phoenix-az",
+    name: "Phoenix, AZ",
+    coordinates: [-112.074, 33.4484],
+    activeJobs: 295,
+    newJobs7d: 36,
+    remoteShare: 30.4,
+    signalScore: 51,
+    dominantRole: "Registered Nurse",
+    industry: "Healthcare"
   }
 ]
 
@@ -127,12 +227,31 @@ export function getEntityPageContext(entityType: EntityType, slug: string, recor
   }
 }
 
+function hydrateLocationSignal(location: JobPostingLocationSignalSnapshot): JobPostingLocationSignalSnapshot | null {
+  const coordinates =
+    Array.isArray(location.coordinates) && location.coordinates.length === 2
+      ? (location.coordinates as [number, number])
+      : resolveLocationCoordinates(location.id, location.name)
+
+  if (!coordinates) {
+    return null
+  }
+
+  return {
+    ...location,
+    coordinates,
+  }
+}
+
 export function getJobPostingLocationSignals(): JobPostingLocationSignalSnapshot[] {
-  return (
-    (snapshot()?.community?.location_signals as JobPostingLocationSignalSnapshot[] | undefined)?.filter(
-      (location) => Array.isArray(location.coordinates) && location.coordinates.length === 2
-    ) ?? fallbackLocationSignals
-  )
+  const snapshotSignals = snapshot()?.community?.location_signals as JobPostingLocationSignalSnapshot[] | undefined
+  if (snapshotSignals?.length) {
+    return snapshotSignals
+      .map(hydrateLocationSignal)
+      .filter((location): location is JobPostingLocationSignalSnapshot => Boolean(location))
+  }
+
+  return fallbackLocationSignals
 }
 
 export function getCommunityArticles(): CommunityArticleSnapshot[] {

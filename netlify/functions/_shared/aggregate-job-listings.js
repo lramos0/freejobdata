@@ -1,6 +1,6 @@
 const { SEO_THRESHOLDS } = require("./seo-thresholds")
 const { bump, buildRows, createCrossTabs, topCounts } = require("./cross-tabs")
-const { resolveCoordinates } = require("./location-coordinates")
+const { isUsableMapLocation, resolveCoordinates } = require("./location-coordinates")
 
 const ENTITY_LIMITS = {
   company: 50,
@@ -326,38 +326,51 @@ function buildEntityBreakdowns(crossTabs, nameLookups, entities) {
   return breakdowns
 }
 
+function dominantRoleLabel(tab, nameLookups) {
+  if (!tab) return "Mixed roles"
+
+  for (const [roleSlug] of topCounts(tab.roles, 6)) {
+    const label = nameLookups.role.get(roleSlug) || roleSlug
+    if (isUsableRoleTitle(label)) {
+      return label
+    }
+  }
+
+  return "Mixed roles"
+}
+
 function buildCommunityLayer(entities, crossTabs, nameLookups, snapshotDate) {
-  const locationSignals = entities.location.records
+  const mapRecords = entities.location.records
+    .filter((record) => isUsableMapLocation(record.slug, record.name))
     .map((record) => {
       const coordinates = resolveCoordinates(record.slug, record.name)
       if (!coordinates) return null
-      const tab = crossTabs.location.get(record.slug)
-      const dominantRoleSlug = tab ? topCounts(tab.roles, 1)[0]?.[0] : null
-      return {
-        id: record.slug,
-        name: record.name,
-        coordinates,
-        activeJobs: record.metrics.activeJobs,
-        newJobs7d: record.metrics.newJobs7d,
-        remoteShare: record.metrics.remoteShare,
-        signalScore: Math.min(99, Math.round(record.metrics.growthWoW + record.metrics.remoteShare / 2)),
-        dominantRole: dominantRoleSlug
-          ? nameLookups.role.get(dominantRoleSlug) || dominantRoleSlug
-          : "Mixed roles",
-        industry: topCounts(tab?.industries || new Map(), 1)[0]
-          ? nameLookups.industry.get(topCounts(tab.industries, 1)[0][0]) || "General"
-          : "General",
-      }
+      return { record, coordinates }
     })
     .filter(Boolean)
-    .sort((a, b) => b.activeJobs - a.activeJobs)
-    .slice(0, 20)
+    .sort((a, b) => b.record.metrics.activeJobs - a.record.metrics.activeJobs)
+    .slice(0, ENTITY_LIMITS.location)
 
-  const articles = entities.location.records.slice(0, 6).map((record, index) => {
-    const coordinates = resolveCoordinates(record.slug, record.name) || [-98.5795, 39.8283]
+  const locationSignals = mapRecords.map(({ record, coordinates }) => {
     const tab = crossTabs.location.get(record.slug)
-    const topRoleSlug = tab ? topCounts(tab.roles, 1)[0]?.[0] : null
-    const roleName = topRoleSlug ? nameLookups.role.get(topRoleSlug) : "multiple roles"
+    return {
+      id: record.slug,
+      name: record.name,
+      coordinates,
+      activeJobs: record.metrics.activeJobs,
+      newJobs7d: record.metrics.newJobs7d,
+      remoteShare: record.metrics.remoteShare,
+      signalScore: Math.min(99, Math.round(record.metrics.growthWoW + record.metrics.remoteShare / 2)),
+      dominantRole: dominantRoleLabel(tab, nameLookups),
+      industry: topCounts(tab?.industries || new Map(), 1)[0]
+        ? nameLookups.industry.get(topCounts(tab.industries, 1)[0][0]) || "General"
+        : "General",
+    }
+  })
+
+  const articles = mapRecords.slice(0, 6).map(({ record, coordinates }, index) => {
+    const tab = crossTabs.location.get(record.slug)
+    const roleName = dominantRoleLabel(tab, nameLookups)
 
     return {
       id: `briefing-${record.slug}`,
@@ -367,13 +380,13 @@ function buildCommunityLayer(entities, crossTabs, nameLookups, snapshotDate) {
       type: index % 2 === 0 ? "team" : "community",
       publishedAt: snapshotDate,
       location: record.name,
-      role: roleName || "Mixed roles",
+      role: roleName,
       industry: "Labor market",
       factuality: record.metrics.newJobs7d >= 50 ? "High Signal" : "Developing",
-      confidence: Math.min(95, 55 + Math.round(record.metrics.growthWoW)),
+      confidence: Math.max(45, Math.min(95, 55 + Math.round(record.metrics.growthWoW))),
       sourceCount: Math.max(8, Math.round(record.metrics.activeJobs / 40)),
       coordinates,
-      tags: [record.name, roleName || "hiring"].filter(Boolean),
+      tags: [record.name, roleName].filter(Boolean),
     }
   })
 

@@ -11,7 +11,8 @@
     "reports": "tsx scripts/generate-weekly-reports.ts",
     "ingest:local": "node scripts/run-ingest-local.js",
     "fetch-metrics": "node scripts/fetch-metrics-snapshot.js",
-    "ensure-metrics": "node scripts/ensure-metrics-snapshot.js"
+    "ensure-metrics": "node scripts/ensure-metrics-snapshot.js",
+    "ensure-firebase": "node scripts/ensure-firebase-function-config.js"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.3.3",

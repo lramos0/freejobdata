@@ -2,7 +2,7 @@
 # https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/
 
 [build]
-  command = "npm --prefix netlify/functions install --omit=dev && node scripts/ensure-metrics-snapshot.js && npm run build"
+  command = "npm --prefix netlify/functions install --omit=dev && node scripts/ensure-metrics-snapshot.js && node scripts/ensure-firebase-function-config.js && npm run build"
   publish = ".next"
   functions = "netlify/functions"
 

@@ -1,56 +1,55 @@
-/** Approximate coordinates for map layers (lng, lat). */
-const COORDINATES_BY_SLUG = {
+/** Client-side coordinate resolver (mirrors netlify/functions/_shared/location-coordinates.js). */
+
+const COORDINATES_BY_SLUG: Record<string, [number, number]> = {
   "san-francisco": [-122.4194, 37.7749],
   "san-francisco-ca": [-122.4194, 37.7749],
-  "san-francisco-bay-area": [-122.4194, 37.7749],
   "new-york": [-74.006, 40.7128],
   "new-york-ny": [-74.006, 40.7128],
-  "new-york-city": [-74.006, 40.7128],
-  "seattle": [-122.3321, 47.6062],
+  seattle: [-122.3321, 47.6062],
   "seattle-wa": [-122.3321, 47.6062],
-  "austin": [-97.7431, 30.2672],
+  austin: [-97.7431, 30.2672],
   "austin-tx": [-97.7431, 30.2672],
   "san-diego": [-117.1611, 32.7157],
   "san-diego-ca": [-117.1611, 32.7157],
-  "boston": [-71.0589, 42.3601],
+  boston: [-71.0589, 42.3601],
   "boston-ma": [-71.0589, 42.3601],
-  "chicago": [-87.6298, 41.8781],
+  chicago: [-87.6298, 41.8781],
   "chicago-il": [-87.6298, 41.8781],
-  "denver": [-104.9903, 39.7392],
+  denver: [-104.9903, 39.7392],
   "denver-co": [-104.9903, 39.7392],
-  "washington": [-77.0369, 38.9072],
+  washington: [-77.0369, 38.9072],
   "washington-dc": [-77.0369, 38.9072],
   "los-angeles": [-118.2437, 34.0522],
   "los-angeles-ca": [-118.2437, 34.0522],
-  "atlanta": [-84.388, 33.749],
+  atlanta: [-84.388, 33.749],
   "atlanta-ga": [-84.388, 33.749],
-  "dallas": [-96.797, 32.7767],
+  dallas: [-96.797, 32.7767],
   "dallas-tx": [-96.797, 32.7767],
-  "houston": [-95.3698, 29.7604],
+  houston: [-95.3698, 29.7604],
   "houston-tx": [-95.3698, 29.7604],
-  "phoenix": [-112.074, 33.4484],
+  phoenix: [-112.074, 33.4484],
   "phoenix-az": [-112.074, 33.4484],
-  "philadelphia": [-75.1652, 39.9526],
+  philadelphia: [-75.1652, 39.9526],
   "philadelphia-pa": [-75.1652, 39.9526],
-  "plano": [-96.6989, 33.0198],
+  plano: [-96.6989, 33.0198],
   "plano-tx": [-96.6989, 33.0198],
-  "miami": [-80.1918, 25.7617],
+  miami: [-80.1918, 25.7617],
   "miami-fl": [-80.1918, 25.7617],
-  "charlotte": [-80.8431, 35.2271],
+  charlotte: [-80.8431, 35.2271],
   "charlotte-nc": [-80.8431, 35.2271],
-  "nashville": [-86.7816, 36.1627],
+  nashville: [-86.7816, 36.1627],
   "nashville-tn": [-86.7816, 36.1627],
-  "portland": [-122.6765, 45.5152],
+  portland: [-122.6765, 45.5152],
   "portland-or": [-122.6765, 45.5152],
-  "minneapolis": [-93.265, 44.9778],
+  minneapolis: [-93.265, 44.9778],
   "minneapolis-mn": [-93.265, 44.9778],
-  "detroit": [-83.0458, 42.3314],
+  detroit: [-83.0458, 42.3314],
   "detroit-mi": [-83.0458, 42.3314],
   "san-jose": [-121.8863, 37.3382],
   "san-jose-ca": [-121.8863, 37.3382],
-  "tampa": [-82.4572, 27.9506],
+  tampa: [-82.4572, 27.9506],
   "tampa-fl": [-82.4572, 27.9506],
-  "orlando": [-81.3792, 28.5383],
+  orlando: [-81.3792, 28.5383],
   "orlando-fl": [-81.3792, 28.5383],
   "las-vegas": [-115.1398, 36.1699],
   "las-vegas-nv": [-115.1398, 36.1699],
@@ -60,24 +59,18 @@ const COORDINATES_BY_SLUG = {
   "kansas-city-mo": [-94.5786, 39.0997],
   "st-louis": [-90.1994, 38.627],
   "st-louis-mo": [-90.1994, 38.627],
-  "pittsburgh": [-79.9959, 40.4406],
+  pittsburgh: [-79.9959, 40.4406],
   "pittsburgh-pa": [-79.9959, 40.4406],
-  "baltimore": [-76.6122, 39.2904],
+  baltimore: [-76.6122, 39.2904],
   "baltimore-md": [-76.6122, 39.2904],
-  "raleigh": [-78.6382, 35.7796],
+  raleigh: [-78.6382, 35.7796],
   "raleigh-nc": [-78.6382, 35.7796],
-  "columbus": [-82.9988, 39.9612],
+  columbus: [-82.9988, 39.9612],
   "columbus-oh": [-82.9988, 39.9612],
-  "indianapolis": [-86.1581, 39.7684],
+  indianapolis: [-86.1581, 39.7684],
   "indianapolis-in": [-86.1581, 39.7684],
-  "sacramento": [-121.4944, 38.5816],
+  sacramento: [-121.4944, 38.5816],
   "sacramento-ca": [-121.4944, 38.5816],
-  "california": [-119.4179, 36.7783],
-  "texas": [-99.9018, 31.9686],
-  "florida": [-81.5158, 27.6648],
-  "united-states": [-98.5795, 39.8283],
-  "remote": [-98.5795, 39.8283],
-  "united-states-remote": [-98.5795, 39.8283],
 }
 
 const BLOCKED_MAP_SLUGS = new Set([
@@ -91,24 +84,23 @@ const BLOCKED_MAP_SLUGS = new Set([
   "null",
 ])
 
-function slugifyName(value) {
+function slugifyName(value: string) {
   return String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
 }
 
-function hashUint(seed) {
+function hashUint(seed: string) {
   let hash = 2166136261
-  const value = String(seed || "")
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index)
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index)
     hash = Math.imul(hash, 16777619)
   }
   return hash >>> 0
 }
 
-function hashLocationCoordinates(slug, name) {
+export function hashLocationCoordinates(slug: string, name: string): [number, number] {
   const seed = `${slug}:${name}`.toLowerCase()
   const hash = hashUint(seed)
   const lng = -125 + ((hash % 10000) / 10000) * 59
@@ -116,11 +108,11 @@ function hashLocationCoordinates(slug, name) {
   return [Number(lng.toFixed(4)), Number(lat.toFixed(4))]
 }
 
-function locationLookupKeys(slug, name) {
-  const keys = []
-  const seen = new Set()
+function locationLookupKeys(slug: string, name: string) {
+  const keys: string[] = []
+  const seen = new Set<string>()
 
-  function add(value) {
+  function add(value: string) {
     const key = slugifyName(value)
     if (!key || seen.has(key)) return
     seen.add(key)
@@ -147,7 +139,7 @@ function locationLookupKeys(slug, name) {
   return keys
 }
 
-function lookupKnownCoordinates(slug, name) {
+function lookupKnownCoordinates(slug: string, name: string) {
   for (const key of locationLookupKeys(slug, name)) {
     if (COORDINATES_BY_SLUG[key]) {
       return COORDINATES_BY_SLUG[key]
@@ -168,7 +160,7 @@ function lookupKnownCoordinates(slug, name) {
   return null
 }
 
-function isUsableMapLocation(slug, name) {
+export function isUsableMapLocation(slug: string, name: string) {
   const key = slugifyName(slug)
   if (!key || BLOCKED_MAP_SLUGS.has(key)) {
     return false
@@ -186,7 +178,11 @@ function isUsableMapLocation(slug, name) {
   return true
 }
 
-function resolveCoordinates(slug, name, options = {}) {
+export function resolveLocationCoordinates(
+  slug: string,
+  name: string,
+  options: { allowHashed?: boolean } = {}
+): [number, number] | null {
   const allowHashed = options.allowHashed !== false
   const known = lookupKnownCoordinates(slug, name)
   if (known) {
@@ -198,11 +194,4 @@ function resolveCoordinates(slug, name, options = {}) {
   }
 
   return hashLocationCoordinates(slug, name)
-}
-
-module.exports = {
-  COORDINATES_BY_SLUG,
-  hashLocationCoordinates,
-  isUsableMapLocation,
-  resolveCoordinates,
 }

@@ -88,6 +88,9 @@ export function CommunityMap() {
         <div>
           <p className="eyebrow">GIS mode</p>
           <h2>Job posting location signal map</h2>
+          <p className="muted">
+            Showing up to {sortedSignals.length} hiring hubs. Unmapped markets use deterministic estimated coordinates.
+          </p>
         </div>
         <div className="map-tools" aria-label="Map tools">
           <button type="button" onClick={resetMap}>
@@ -192,8 +195,8 @@ export function CommunityMap() {
             ) : null}
           </div>
           <div className="map-location-list">
-            <h3>Top markets</h3>
-            {visibleSignals.slice(0, 8).map((location) => (
+            <h3>Top markets ({visibleSignals.length})</h3>
+            {visibleSignals.slice(0, 20).map((location) => (
               <button
                 className={location.id === selectedLocation?.id ? "active" : ""}
                 key={location.id}
