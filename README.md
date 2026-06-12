@@ -80,7 +80,7 @@ Set these under **Site configuration → Environment variables** (production sco
 | Variable | Production value | Notes |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | `https://freejobdata.com` | Also set in `netlify.toml` for production context. |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | *(your Firebase project)* | Required for `/community` sign-in and `job-market-news` auth. Baked into functions at build. |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | *(your Firebase project)* | Required for `/community` sign-in and `job-market-news` auth. Baked into functions at build (`firebase-runtime.json`; omitted from Netlify secrets scan). |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | *(your Firebase web API key)* | Required for Google sign-in on `/community`. |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | *(your Firebase auth domain)* | Required for Google sign-in on `/community`. |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | *(your Firebase app id)* | Required for Google sign-in on `/community`. |
