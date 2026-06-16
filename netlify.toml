@@ -16,7 +16,8 @@
 [build.environment]
   NODE_VERSION = "20"
   # Firebase project ID is public (also in client bundle); baked for function runtime.
-  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/_shared/firebase-runtime.json"
+  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/_shared/firebase-runtime.json,netlify/functions/_shared/firebase-project-id.js"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
 
 [context.production.environment]
   NEXT_PUBLIC_SITE_URL = "https://freejobdata.com"
