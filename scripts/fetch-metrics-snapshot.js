@@ -26,6 +26,10 @@ function isCsvSnapshot(snapshot) {
   )
 }
 
+function hasDashboardContexts(snapshot) {
+  return Boolean(snapshot?.dashboards?.contexts?.length)
+}
+
 function isFreshEnough(snapshot) {
   const timestamp = Date.parse(snapshot?.generated_at || "")
   if (!Number.isFinite(timestamp)) return false
@@ -53,6 +57,10 @@ async function main() {
   const snapshot = payload?.data || payload
   if (!snapshot?.catalog || !snapshot?.entities) {
     console.warn("fetch-metrics-snapshot: response missing catalog/entities; keeping existing file.")
+    return
+  }
+  if (!hasDashboardContexts(snapshot)) {
+    console.warn("fetch-metrics-snapshot: response missing dashboard contexts; keeping existing file.")
     return
   }
   if (!isCsvSnapshot(snapshot)) {

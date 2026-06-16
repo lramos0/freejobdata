@@ -27,6 +27,28 @@ function parseView(event) {
   return String(qs.view || qs.format || "manifest").trim().toLowerCase()
 }
 
+function normalizeSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+}
+
+function parseContext(event) {
+  const qs = event?.queryStringParameters || {}
+  return normalizeSlug(qs.context || qs.dashboard_context || "")
+}
+
+function dashboardContextIndex(snapshot) {
+  return (snapshot.dashboards?.contexts || []).map((context) => ({
+    slug: context.slug,
+    label: context.label,
+    active_jobs: context.active_jobs,
+    row_count: context.row_count,
+  }))
+}
+
 async function runIngest(event) {
   const { items, dataUrl, source, startedAt } = await fetchJobListings()
   const { snapshot, manifest } = buildSnapshotFromListings({ items, dataUrl, source, startedAt })
@@ -44,7 +66,7 @@ async function runIngest(event) {
   }
 }
 
-function pickViewPayload(view, snapshot, manifest) {
+function pickViewPayload(view, snapshot, manifest, contextSlug) {
   if (!snapshot) return null
 
   switch (view) {
@@ -52,6 +74,20 @@ function pickViewPayload(view, snapshot, manifest) {
       return snapshot
     case "dashboard":
     case "dashboards":
+      if (contextSlug) {
+        const contexts = snapshot.dashboards?.contexts || []
+        const context = contexts.find((item) => item.slug === contextSlug) || contexts[0] || null
+        return {
+          generated_at: snapshot.generated_at,
+          global: snapshot.global,
+          context,
+          requested_context: contextSlug,
+          resolved_context: context?.slug || null,
+          context_found: context?.slug === contextSlug,
+          contexts: dashboardContextIndex(snapshot),
+        }
+      }
+
       return {
         generated_at: snapshot.generated_at,
         global: snapshot.global,
@@ -86,6 +122,7 @@ exports.handler = async (event) => {
   const method = event?.httpMethod ? String(event.httpMethod).toUpperCase() : null
   const isScheduled = method === null
   const view = parseView(event)
+  const context = parseContext(event)
 
   try {
     if (isScheduled || method === "POST") {
@@ -101,16 +138,17 @@ exports.handler = async (event) => {
         {
           ok: false,
           error: "No metrics snapshot stored yet. Trigger a POST ingest or wait for the scheduled cron.",
-          views: ["manifest", "snapshot", "dashboard", "rollups", "quality"],
+          views: ["manifest", "snapshot", "dashboard", "dashboard&context=remote-jobs", "rollups", "quality"],
         },
         404
       )
     }
 
-    const payload = pickViewPayload(view, snapshot, manifest)
+    const payload = pickViewPayload(view, snapshot, manifest, context)
     return jsonResponse({
       ok: true,
       view,
+      context: context || undefined,
       data: payload,
     })
   } catch (error) {

@@ -4,7 +4,11 @@ let cached: MetricsSnapshotFile | null | undefined
 
 function isValidMetricsSnapshot(value: unknown): value is MetricsSnapshotFile {
   const snapshot = value as MetricsSnapshotFile | null
-  return Boolean(snapshot?.entities?.companies?.length && snapshot?.dashboards?.home)
+  return Boolean(
+    snapshot?.entities?.companies?.length &&
+      snapshot?.dashboards?.home &&
+      snapshot.dashboards.contexts?.length
+  )
 }
 
 /** Reads metrics-snapshot.json (written by ingest-job-data-pool) on the server when present. */

@@ -91,6 +91,112 @@ function parseSalaryMidpoint(row) {
   return Math.round((values[0] + values[values.length - 1]) / 2)
 }
 
+function rowSearchText(row) {
+  return [
+    row.job_title,
+    row.company_name,
+    row.job_location,
+    row.job_industries,
+    row.industries,
+    row.country_code,
+  ]
+    .map((value) => String(value || ""))
+    .join(" ")
+}
+
+function isGovernmentContext(row) {
+  return /\b(government|federal|public sector|municipal|department of|dept of|county|state of|city of|defense|dod|army|navy|air force|marine corps|veterans|homeland security|tsa|irs|usajobs|police|sheriff|firefighter|public health)\b/i.test(
+    rowSearchText(row)
+  )
+}
+
+function isInternshipContext(row) {
+  return /\b(intern|internship|co-op|co op|student trainee|apprentice|early career)\b/i.test(rowSearchText(row))
+}
+
+function isHealthcareContext(row) {
+  return /\b(health|healthcare|hospital|medical|clinic|nurse|rn|physician|pharmacy|therapist|patient|behavioral|dental|caregiver)\b/i.test(
+    rowSearchText(row)
+  )
+}
+
+function isTechnologyContext(row) {
+  return /\b(software|developer|engineer|data|cloud|cyber|security|ai|machine learning|ml engineer|platform|devops|sre|product manager|systems analyst|technical)\b/i.test(
+    rowSearchText(row)
+  )
+}
+
+function isHighSalaryContext(row) {
+  const midpoint = parseSalaryMidpoint(row)
+  return midpoint != null && midpoint >= 120000
+}
+
+const METRICS_CONTEXT_DEFINITIONS = [
+  {
+    slug: "default",
+    label: "Default",
+    eyebrow: "All tracked listings",
+    summary: "Full JobDataPool hiring surface",
+    description: "Every active listing in the latest JobDataPool metrics snapshot.",
+    annotation: "Baseline view across the complete normalized listings feed.",
+    match: () => true,
+  },
+  {
+    slug: "remote-jobs",
+    label: "Remote jobs",
+    eyebrow: "Remote and hybrid",
+    summary: "Distributed work demand",
+    description: "Listings where title or location language indicates remote or hybrid work.",
+    annotation: "Remote context is derived from title and location text, so it favors explicit remote or hybrid postings.",
+    match: isRemote,
+  },
+  {
+    slug: "government-jobs",
+    label: "Government jobs",
+    eyebrow: "Public sector",
+    summary: "Government and public contractor hiring",
+    description: "Listings with public-sector, defense, agency, municipal, veteran, or government terms.",
+    annotation: "Government context blends direct public-sector roles with adjacent contractor and agency language.",
+    match: isGovernmentContext,
+  },
+  {
+    slug: "internships",
+    label: "Internships",
+    eyebrow: "Early career",
+    summary: "Internship and trainee market",
+    description: "Intern, apprenticeship, co-op, student trainee, and early-career postings.",
+    annotation: "Internship context is title-driven and is best read as directional early-career demand.",
+    match: isInternshipContext,
+  },
+  {
+    slug: "healthcare",
+    label: "Healthcare",
+    eyebrow: "Care delivery",
+    summary: "Clinical and healthcare hiring",
+    description: "Health, hospital, clinic, nursing, physician, pharmacy, therapy, and patient-care postings.",
+    annotation: "Healthcare context captures both clinical roles and care-adjacent operational jobs.",
+    match: isHealthcareContext,
+  },
+  {
+    slug: "technology",
+    label: "Technology",
+    eyebrow: "Software and data",
+    summary: "Technology labor demand",
+    description: "Software, data, cloud, security, AI, platform, DevOps, and technical roles.",
+    annotation: "Technology context is role-keyword based and includes technical jobs at non-tech employers.",
+    match: isTechnologyContext,
+  },
+  {
+    slug: "high-salary",
+    label: "High salary",
+    eyebrow: "Pay signal",
+    summary: "Listings with salary midpoint at or above $120,000",
+    description: "Listings with parseable salary ranges whose midpoint is at least $120,000.",
+    annotation: "High-salary context only includes rows with parseable salary ranges, so coverage matters.",
+    match: isHighSalaryContext,
+  },
+]
+
 function splitIndustries(row) {
   const raw = String(row.job_industries || row.industries || "").trim()
   if (!raw) return ["uncategorized"]
@@ -112,7 +218,9 @@ function createBucket(name) {
     activeRows: 0,
     closedRows: 0,
     remoteRows: 0,
+    activeRemoteRows: 0,
     salaryValues: [],
+    activeSalaryValues: [],
     ingestedLast7d: 0,
     ingestedPrev7d: 0,
     ingestedLast30d: 0,
@@ -130,10 +238,13 @@ function touchBucket(bucket, row, { nowTs, weekMs, monthMs }) {
     bucket.activeRows += 1
   }
 
-  if (isRemote(row)) bucket.remoteRows += 1
+  const remote = isRemote(row)
+  if (remote) bucket.remoteRows += 1
+  if (!closed && remote) bucket.activeRemoteRows += 1
 
   const salary = parseSalaryMidpoint(row)
   if (salary != null) bucket.salaryValues.push(salary)
+  if (!closed && salary != null) bucket.activeSalaryValues.push(salary)
 
   const date = rowDate(row)
   if (date) {
@@ -163,10 +274,10 @@ function median(values) {
 function bucketToMetrics(entityType, entityId, bucket, snapshotDate) {
   const activeJobs = bucket.activeRows
   const remoteShare = activeJobs
-    ? Number(((bucket.remoteRows / Math.max(bucket.totalRows, 1)) * 100).toFixed(1))
+    ? Number(((bucket.activeRemoteRows / Math.max(bucket.activeRows, 1)) * 100).toFixed(1))
     : 0
   const salaryCoverage = activeJobs
-    ? Number(((bucket.salaryValues.length / Math.max(bucket.activeRows, 1)) * 100).toFixed(1))
+    ? Number(((bucket.activeSalaryValues.length / Math.max(bucket.activeRows, 1)) * 100).toFixed(1))
     : 0
 
   return {
@@ -180,7 +291,7 @@ function bucketToMetrics(entityType, entityId, bucket, snapshotDate) {
     growthWoW: growthPercent(bucket.ingestedLast7d, bucket.ingestedPrev7d),
     growthMoM: growthPercent(bucket.ingestedLast30d, bucket.ingestedPrev30d),
     remoteShare,
-    medianSalary: median(bucket.salaryValues),
+    medianSalary: median(bucket.activeSalaryValues),
     salaryCoverage,
   }
 }
@@ -220,10 +331,61 @@ function rollupTable(buckets, limit = 25) {
       active_jobs: bucket.activeRows,
       new_jobs_7d: bucket.ingestedLast7d,
       remote_share_pct: bucket.activeRows
-        ? Number(((bucket.remoteRows / Math.max(bucket.totalRows, 1)) * 100).toFixed(1))
+        ? Number(((bucket.activeRemoteRows / Math.max(bucket.activeRows, 1)) * 100).toFixed(1))
         : 0,
-      median_salary: median(bucket.salaryValues),
+      median_salary: median(bucket.activeSalaryValues),
       wow_growth_pct: growthPercent(bucket.ingestedLast7d, bucket.ingestedPrev7d),
+    }))
+}
+
+function formatMoney(value) {
+  return value ? `$${value.toLocaleString()}` : "n/a"
+}
+
+function topCompanyRows(maps, limit = 10) {
+  return rollupTable(maps.company, 50)
+    .filter((row) => isUsableCompanyName(row.name))
+    .slice(0, limit)
+    .map((row) => ({
+      company: row.name,
+      "active jobs": row.active_jobs,
+      "new 7d": row.new_jobs_7d,
+      "remote share": `${row.remote_share_pct}%`,
+    }))
+}
+
+function fastGrowingRoleRows(maps, limit = 10) {
+  return rollupTable(maps.role, 50)
+    .filter((row) => isUsableRoleTitle(row.name))
+    .sort((a, b) => b.wow_growth_pct - a.wow_growth_pct || b.active_jobs - a.active_jobs)
+    .slice(0, limit)
+    .map((row) => ({
+      role: row.name,
+      "active jobs": row.active_jobs,
+      "WoW growth": `${row.wow_growth_pct}%`,
+      "median salary": formatMoney(row.median_salary),
+    }))
+}
+
+function topLocationRows(maps, limit = 10) {
+  return rollupTable(maps.location, 50)
+    .slice(0, limit)
+    .map((row) => ({
+      location: row.name,
+      "active jobs": row.active_jobs,
+      "new 7d": row.new_jobs_7d,
+      "remote share": `${row.remote_share_pct}%`,
+    }))
+}
+
+function topIndustryRows(maps, limit = 10) {
+  return rollupTable(maps.industry, 50)
+    .slice(0, limit)
+    .map((row) => ({
+      industry: row.name,
+      "active jobs": row.active_jobs,
+      "new 7d": row.new_jobs_7d,
+      "WoW growth": `${row.wow_growth_pct}%`,
     }))
 }
 
@@ -592,29 +754,124 @@ function rowCountryHint(locationName) {
   return "United States"
 }
 
-function buildDashboards(maps, entityBundles, snapshotDate) {
-  const topCompanies = rollupTable(maps.company, 50)
-    .filter((row) => isUsableCompanyName(row.name))
-    .slice(0, 10)
-    .map((row) => ({
-      company: row.name,
-      "active jobs": row.active_jobs,
-      "new 7d": row.new_jobs_7d,
-      "remote share": `${row.remote_share_pct}%`,
-    }))
+function buildGlobalMetrics(items, maps, quality, entities) {
+  const activeRows = items.filter((row) => !isClosed(row))
+  const activeJobs = quality.rows_active
+  const salaryRows = activeRows
+    .map(parseSalaryMidpoint)
+    .filter((value) => typeof value === "number")
 
-  const fastGrowingRoles = rollupTable(maps.role, 50)
-    .filter((row) => isUsableRoleTitle(row.name))
-    .sort((a, b) => b.wow_growth_pct - a.wow_growth_pct || b.active_jobs - a.active_jobs)
-    .slice(0, 10)
-    .map((row) => ({
-      role: row.name,
-      "active jobs": row.active_jobs,
-      "WoW growth": `${row.wow_growth_pct}%`,
-      "median salary": row.median_salary ? `$${row.median_salary.toLocaleString()}` : "n/a",
-    }))
+  return {
+    active_jobs: activeJobs,
+    new_jobs_7d: [...maps.company.values()].reduce((sum, bucket) => sum + bucket.ingestedLast7d, 0),
+    closed_jobs_7d: quality.rows_closed,
+    remote_share: activeJobs
+      ? Number(((activeRows.filter(isRemote).length / Math.max(activeJobs, 1)) * 100).toFixed(1))
+      : 0,
+    median_salary: median(salaryRows),
+    salary_coverage: activeJobs
+      ? Number(((salaryRows.length / Math.max(activeJobs, 1)) * 100).toFixed(1))
+      : 0,
+    indexed_pages: {
+      company: entities.company.records.filter((record) => record.indexable).length,
+      role: entities.role.records.filter((record) => record.indexable).length,
+      location: entities.location.records.filter((record) => record.indexable).length,
+      industry: entities.industry.records.filter((record) => record.indexable).length,
+    },
+  }
+}
 
-  const globalActive = entityBundles.globalActive
+function totalIndexedPages(metrics) {
+  return Object.values(metrics.indexed_pages || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+}
+
+function buildDashboardContext(definition, rows, maps, entities, metrics, snapshotDate) {
+  const salaryCoverage = metrics.salary_coverage || 0
+  const activeJobs = metrics.active_jobs || 0
+
+  return {
+    slug: definition.slug,
+    label: definition.label,
+    eyebrow: definition.eyebrow,
+    summary: definition.summary,
+    description: definition.description,
+    row_count: rows.length,
+    active_jobs: activeJobs,
+    hero_metrics: [
+      {
+        label: "Active listings",
+        value: activeJobs.toLocaleString(),
+        detail: `${definition.label} open rows`,
+        annotation: `**Signal:** ${activeJobs.toLocaleString()} active postings match the ${definition.label.toLowerCase()} context.`,
+      },
+      {
+        label: "New jobs, 7d",
+        value: metrics.new_jobs_7d.toLocaleString(),
+        detail: "First seen in the last 7 days",
+        annotation: `**Freshness:** ${metrics.new_jobs_7d.toLocaleString()} matched rows entered the pool in the last week.`,
+      },
+      {
+        label: "Remote share",
+        value: `${metrics.remote_share}%`,
+        detail: "Remote or hybrid active postings",
+        annotation: "**Mode mix:** Remote share is computed from active postings with explicit remote or hybrid language.",
+      },
+      {
+        label: "Median salary",
+        value: formatMoney(metrics.median_salary),
+        detail: `${salaryCoverage}% salary coverage`,
+        annotation: "**Pay read:** Salary uses the midpoint of parseable ranges; ignore the median when coverage is thin.",
+      },
+      {
+        label: "Indexed entities",
+        value: String(totalIndexedPages(metrics)),
+        detail: "Company, role, location, and industry pages",
+        annotation: "**SEO surface:** Entity pages are counted only after they clear the active-job indexing thresholds.",
+      },
+      {
+        label: "Snapshot date",
+        value: snapshotDate,
+        detail: "UTC date stamped on this context",
+        annotation: "**Version:** Context dashboards are rebuilt during the same ingest that writes the main snapshot.",
+      },
+    ],
+    top_hiring_trends: topCompanyRows(maps, 10),
+    fast_growing_roles: fastGrowingRoleRows(maps, 10),
+    top_locations: topLocationRows(maps, 10),
+    top_industries: topIndustryRows(maps, 10),
+    annotations: {
+      overview: `**Context:** ${definition.annotation}`,
+      companies: `**Ranking:** Employers are sorted by active postings inside the ${definition.label.toLowerCase()} context.`,
+      roles: "**Momentum:** Roles are sorted by week-over-week growth, then active postings, within this context.",
+      locations: "**Geography:** Locations show where matched active rows concentrate, including remote-heavy labels when present.",
+      industries: "**Taxonomy:** Industry tags come from JobDataPool listing metadata and may include multiple tags per row.",
+    },
+  }
+}
+
+function buildMetricsContexts(items, snapshotDate, base) {
+  return METRICS_CONTEXT_DEFINITIONS.map((definition) => {
+    if (definition.slug === "default") {
+      return buildDashboardContext(definition, items, base.maps, base.entities, base.global, snapshotDate)
+    }
+
+    const rows = items.filter(definition.match)
+    const { maps, quality, entities } = buildEntityMaps(rows, snapshotDate)
+    const global = buildGlobalMetrics(rows, maps, quality, entities)
+    return buildDashboardContext(definition, rows, maps, entities, global, snapshotDate)
+  }).filter((context) => context.slug === "default" || context.row_count > 0)
+}
+
+function buildDashboards(maps, entityBundles, snapshotDate, items, global) {
+  const topCompanies = topCompanyRows(maps, 10)
+  const fastGrowingRoles = fastGrowingRoleRows(maps, 10)
+  const contexts = buildMetricsContexts(items, snapshotDate, {
+    maps,
+    entities: entityBundles,
+    global,
+  })
+
+  const globalActive = global.active_jobs
 
   const heroMetrics = [
     {
@@ -625,12 +882,12 @@ function buildDashboards(maps, entityBundles, snapshotDate) {
     {
       label: "Company pages",
       value: String(entityBundles.company.records.filter((r) => r.indexable).length),
-      detail: `Indexed when active jobs ≥ ${SEO_THRESHOLDS.companyMinActiveJobs}`,
+      detail: `Indexed when active jobs at least ${SEO_THRESHOLDS.companyMinActiveJobs}`,
     },
     {
       label: "Role pages",
       value: String(entityBundles.role.records.filter((r) => r.indexable).length),
-      detail: `Indexed when active jobs ≥ ${SEO_THRESHOLDS.roleMinActiveJobs}`,
+      detail: `Indexed when active jobs at least ${SEO_THRESHOLDS.roleMinActiveJobs}`,
     },
     {
       label: "Snapshot date",
@@ -645,6 +902,7 @@ function buildDashboards(maps, entityBundles, snapshotDate) {
       top_hiring_trends: topCompanies,
       fast_growing_roles: fastGrowingRoles,
     },
+    contexts,
     rollups: {
       companies_top_50: rollupTable(maps.company, 50),
       roles_top_50: rollupTable(maps.role, 50),
@@ -680,40 +938,10 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
   const community = buildCommunityLayer(entities, crossTabs, nameLookups, snapshotDate)
   const listing_previews = buildListingPreviews(items)
 
-  const globalActive = quality.rows_active
-  const global = {
-    active_jobs: globalActive,
-    new_jobs_7d: [...maps.company.values()].reduce((sum, b) => sum + b.ingestedLast7d, 0),
-    closed_jobs_7d: quality.rows_closed,
-    remote_share: items.length
-      ? Number(
-          (
-            (items.filter((row) => !isClosed(row) && isRemote(row)).length / Math.max(globalActive, 1)) *
-            100
-          ).toFixed(1)
-        )
-      : 0,
-    median_salary: median(
-      items.map(parseSalaryMidpoint).filter((value) => typeof value === "number")
-    ),
-    salary_coverage: globalActive
-      ? Number(
-          (
-            (items.filter((row) => !isClosed(row) && parseSalaryMidpoint(row) != null).length /
-              globalActive) *
-            100
-          ).toFixed(1)
-        )
-      : 0,
-    indexed_pages: {
-      company: entities.company.records.filter((r) => r.indexable).length,
-      role: entities.role.records.filter((r) => r.indexable).length,
-      location: entities.location.records.filter((r) => r.indexable).length,
-      industry: entities.industry.records.filter((r) => r.indexable).length,
-    },
-  }
+  const global = buildGlobalMetrics(items, maps, quality, entities)
+  const globalActive = global.active_jobs
 
-  const dashboards = buildDashboards(maps, { globalActive, ...entities }, snapshotDate)
+  const dashboards = buildDashboards(maps, entities, snapshotDate, items, global)
   const datasetCounts = buildDatasetsMeta(globalActive, snapshotDate)
 
   const snapshot = {
@@ -754,6 +982,7 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
       notes: [
         "All rollups are computed from JobDataPool listings-june-2026.csv on R2.",
         "Use GET ?view=manifest for run metadata only, or ?view=quality for data-quality counters.",
+        "Use GET ?view=dashboard&context=remote-jobs for a context-specific dashboard payload.",
         "Use GET ?view=rollups for CSV-friendly top-50 tables without loading the full site snapshot.",
       ],
     },
@@ -773,6 +1002,12 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
       industries: snapshot.catalog.industries.length,
     },
     dashboards_available: Object.keys(snapshot.dashboards),
+    dashboard_contexts: snapshot.dashboards.contexts.map((context) => ({
+      slug: context.slug,
+      label: context.label,
+      active_jobs: context.active_jobs,
+      row_count: context.row_count,
+    })),
     quality: snapshot.analyst.quality,
   }
 

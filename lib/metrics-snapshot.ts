@@ -4,10 +4,36 @@ export type SnapshotEntityRecord = EntityRecord & {
   indexable?: boolean
 }
 
+export type DashboardMetric = {
+  label: string
+  value: string
+  detail: string
+  annotation?: string
+}
+
 export type HomeDashboard = {
-  hero_metrics: { label: string; value: string; detail: string }[]
+  hero_metrics: DashboardMetric[]
   top_hiring_trends: Record<string, string | number>[]
   fast_growing_roles: Record<string, string | number>[]
+}
+
+export type MetricsDashboardContext = HomeDashboard & {
+  slug: string
+  label: string
+  eyebrow: string
+  summary: string
+  description: string
+  row_count: number
+  active_jobs: number
+  annotations: {
+    overview: string
+    companies: string
+    roles: string
+    locations: string
+    industries: string
+  }
+  top_locations: Record<string, string | number>[]
+  top_industries: Record<string, string | number>[]
 }
 
 export type MetricsSnapshotFile = {
@@ -28,6 +54,7 @@ export type MetricsSnapshotFile = {
   }
   dashboards: {
     home: HomeDashboard
+    contexts?: MetricsDashboardContext[]
     rollups?: Record<string, unknown>
   }
   catalog: {

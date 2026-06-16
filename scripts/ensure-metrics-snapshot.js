@@ -15,10 +15,14 @@ function hasSnapshot() {
   if (!fs.existsSync(OUTPUT)) return false
   try {
     const parsed = JSON.parse(fs.readFileSync(OUTPUT, "utf8"))
-    return Boolean(parsed?.entities?.companies?.length && isCsvSnapshot(parsed))
+    return Boolean(parsed?.entities?.companies?.length && isCsvSnapshot(parsed) && hasDashboardContexts(parsed))
   } catch {
     return false
   }
+}
+
+function hasDashboardContexts(snapshot) {
+  return Boolean(snapshot?.dashboards?.contexts?.length)
 }
 
 function isCsvSnapshot(snapshot) {
@@ -53,6 +57,10 @@ async function tryFetch() {
   const snapshot = payload?.data || payload
   if (!snapshot?.entities?.companies?.length) {
     console.warn("ensure-metrics-snapshot: fetched payload missing entities")
+    return false
+  }
+  if (!hasDashboardContexts(snapshot)) {
+    console.warn("ensure-metrics-snapshot: fetched payload missing dashboard contexts")
     return false
   }
   if (!isCsvSnapshot(snapshot)) {

@@ -13,7 +13,13 @@ import {
 } from "./data-seed"
 import { metricsSnapshotMeta } from "./load-metrics-snapshot"
 import { readMetricsSnapshot } from "./metrics-snapshot-runtime"
-import { mergeDatasetCounts, stripEntityRecord, type HomeDashboard, type MetricsSnapshotFile } from "./metrics-snapshot"
+import {
+  mergeDatasetCounts,
+  stripEntityRecord,
+  type HomeDashboard,
+  type MetricsDashboardContext,
+  type MetricsSnapshotFile
+} from "./metrics-snapshot"
 import { withSafeCompanyDomains } from "./domain-fallbacks"
 
 const roleTitleTerms =
@@ -166,6 +172,56 @@ export function getHomeDashboard(nextSnapshot = snapshot): HomeDashboard {
     top_hiring_trends: companyRows(8, nextSnapshot),
     fast_growing_roles: roleRows(8, nextSnapshot)
   }
+}
+
+function fallbackDashboardContext(nextSnapshot?: MetricsSnapshotFile | null): MetricsDashboardContext {
+  const dashboard = getHomeDashboard(nextSnapshot)
+  const activeJobs = nextSnapshot?.global?.active_jobs ?? 0
+
+  return {
+    slug: "default",
+    label: "Default",
+    eyebrow: "All tracked listings",
+    summary: "Full JobDataPool hiring surface",
+    description:
+      "The default context includes every active listing in the latest JobDataPool metrics snapshot.",
+    row_count: nextSnapshot?.source?.row_count ?? activeJobs,
+    active_jobs: activeJobs,
+    hero_metrics: dashboard.hero_metrics,
+    top_hiring_trends: dashboard.top_hiring_trends,
+    fast_growing_roles: dashboard.fast_growing_roles,
+    top_locations: [],
+    top_industries: [],
+    annotations: {
+      overview: "**Scope:** All active rows in the current metrics snapshot.",
+      companies: "**Ranking:** Employers are sorted by open listing volume.",
+      roles: "**Momentum:** Roles are sorted by week-over-week growth, then active listings.",
+      locations: "**Coverage:** Location rollups appear after the next context-aware ingest.",
+      industries: "**Coverage:** Industry rollups appear after the next context-aware ingest."
+    }
+  }
+}
+
+export function getMetricsDashboardContexts(nextSnapshot = snapshot): MetricsDashboardContext[] {
+  const contexts = nextSnapshot?.dashboards?.contexts
+  if (contexts?.length) {
+    return contexts
+  }
+
+  return [fallbackDashboardContext(nextSnapshot)]
+}
+
+export function findMetricsDashboardContext(
+  requestedSlug: string | undefined,
+  nextSnapshot = snapshot
+): MetricsDashboardContext {
+  const contexts = getMetricsDashboardContexts(nextSnapshot)
+  const normalized = requestedSlug
+    ?.trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+  return contexts.find((context) => context.slug === normalized) ?? contexts[0] ?? fallbackDashboardContext(nextSnapshot)
 }
 
 export function findBySlug<T extends { slug: string }>(records: T[], slug: string) {
