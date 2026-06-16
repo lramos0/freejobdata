@@ -20,7 +20,7 @@ export const SITE_SITELINKS: SiteHub[] = [
     description: "Hiring metrics, active job counts, growth snapshots, and labor market dashboards."
   },
   {
-    label: "Community",
+    label: "News & Community",
     path: "/community",
     description:
       "OSINT-style hiring articles, Firebase-backed community roles, and a Deck.gl job posting location map."

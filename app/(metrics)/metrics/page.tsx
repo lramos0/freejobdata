@@ -20,6 +20,7 @@ type MetricsPageProps = {
   searchParams?: Promise<{
     context?: string | string[]
   }>
+  contextOverride?: string
 }
 
 function firstParam(value: string | string[] | undefined) {
@@ -27,7 +28,7 @@ function firstParam(value: string | string[] | undefined) {
 }
 
 function contextHref(context: MetricsDashboardContext) {
-  return context.slug === "default" ? "/metrics" : `/metrics?context=${encodeURIComponent(context.slug)}`
+  return context.slug === "default" ? "/metrics" : `/metrics/${encodeURIComponent(context.slug)}`
 }
 
 function MarkdownAnnotation({ text }: { text?: string }) {
@@ -73,11 +74,11 @@ function DashboardTablePanel({
   )
 }
 
-export default async function MetricsPage({ searchParams }: MetricsPageProps) {
+export default async function MetricsPage({ searchParams, contextOverride }: MetricsPageProps) {
   const params = await searchParams
   const snapshot = await loadLatestMetricsSnapshot()
   const snapshotMeta = metricsSnapshotMeta(snapshot)
-  const requestedContext = firstParam(params?.context)
+  const requestedContext = contextOverride || firstParam(params?.context)
   const contexts = getMetricsDashboardContexts(snapshot)
   const dashboard = findMetricsDashboardContext(requestedContext, snapshot)
   const generatedDate = snapshotMeta?.generated_at ? new Date(snapshotMeta.generated_at) : null

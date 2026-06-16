@@ -66,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="footer-links">
               <Link href="/datasets">Datasets</Link>
               <Link href="/metrics">Metrics</Link>
-              <Link href="/community">Community</Link>
+              <Link href="/community">News & Community</Link>
               <Link href="/maps">Maps</Link>
               <Link href="/about">About</Link>
               <Link href="/press">Press</Link>

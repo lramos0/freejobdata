@@ -2,9 +2,12 @@ import type { MetadataRoute } from "next"
 import {
   companyRecords,
   datasets,
+  getMetricsDashboardContexts,
   industryRecords,
   locationRecords,
+  metricsSnapshotMeta,
   reports,
+  readMetricsSnapshot,
   roleRecords
 } from "@/lib/data"
 import { communityArticles } from "@/lib/community-data"
@@ -72,6 +75,21 @@ export function buildEntitySitemap(): MetadataRoute.Sitemap {
     )
 
   return entityPaths
+}
+
+export function buildMetricsContextSitemap(): MetadataRoute.Sitemap {
+  const snapshot = readMetricsSnapshot()
+  const snapshotMeta = metricsSnapshotMeta(snapshot)
+
+  return getMetricsDashboardContexts(snapshot)
+    .filter((context) => context.slug !== "default" && context.active_jobs > 0)
+    .map((context) =>
+      entry(`/metrics/${encodeURIComponent(context.slug)}`, {
+        lastModified: snapshotMeta?.generated_at,
+        changeFrequency: "daily",
+        priority: 0.82
+      })
+    )
 }
 
 /** Tier 2: dataset and report detail pages. */
