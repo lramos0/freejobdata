@@ -26,6 +26,24 @@
   # NEXT_PUBLIC_SITE_URL omitted so lib/seo.ts uses Netlify's URL / DEPLOY_PRIME_URL.
 
 [[redirects]]
+  from = "http://freejobdata.com/*"
+  to = "https://freejobdata.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.freejobdata.com/*"
+  to = "https://freejobdata.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.freejobdata.com/*"
+  to = "https://freejobdata.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/data/metrics-snapshot.json"
   to = "/.netlify/functions/ingest-job-data-pool?view=snapshot"
   status = 200

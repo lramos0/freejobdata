@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { buildMetadata } from "@/lib/seo"
 import { companyRecords } from "@/lib/data"
+import { shouldIndexPage } from "@/lib/thresholds"
 
 export const metadata = buildMetadata({
   title: "Company Hiring Intelligence",
@@ -9,6 +10,8 @@ export const metadata = buildMetadata({
 })
 
 export default function CompaniesPage() {
+  const indexableCompanyRecords = companyRecords.filter((record) => shouldIndexPage(record.metrics))
+
   return (
     <>
       <section className="hero">
@@ -17,7 +20,7 @@ export default function CompaniesPage() {
         <p className="lede">Track active jobs, weekly growth, remote share, role mix, and location demand by company.</p>
       </section>
       <section className="section grid">
-        {companyRecords.map((record) => (
+        {indexableCompanyRecords.map((record) => (
           <Link className="card" href={`/companies/${record.slug}`} key={record.slug}>
             <span className="pill">{record.metrics.activeJobs} active jobs</span>
             <h3>{record.name}</h3>

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { buildMetadata } from "@/lib/seo"
 import { locationRecords } from "@/lib/data"
+import { shouldIndexPage } from "@/lib/thresholds"
 
 export const metadata = buildMetadata({
   title: "Location Hiring Trends",
@@ -9,6 +10,8 @@ export const metadata = buildMetadata({
 })
 
 export default function LocationsPage() {
+  const indexableLocationRecords = locationRecords.filter((record) => shouldIndexPage(record.metrics))
+
   return (
     <>
       <section className="hero">
@@ -17,7 +20,7 @@ export default function LocationsPage() {
         <p className="lede">Compare hiring demand across cities, states, metros, and countries.</p>
       </section>
       <section className="section grid">
-        {locationRecords.map((record) => (
+        {indexableLocationRecords.map((record) => (
           <Link className="card" href={`/locations/${record.slug}`} key={record.slug}>
             <span className="pill">{record.metrics.activeJobs} active jobs</span>
             <h3>{record.name}</h3>

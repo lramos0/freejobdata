@@ -2,12 +2,12 @@ import { notFound } from "next/navigation"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { EntityIntelligencePage } from "@/components/EntityIntelligencePage"
 import { buildMetadata } from "@/lib/seo"
-import { industries, industryRecords } from "@/lib/data"
+import { industryRecords } from "@/lib/data"
 import { getEntityPageContext } from "@/lib/metrics-hydration"
 import { shouldIndexPage } from "@/lib/thresholds"
 
 export function generateStaticParams() {
-  return industries.map((industry) => ({ slug: industry.slug }))
+  return industryRecords.filter((record) => shouldIndexPage(record.metrics)).map((record) => ({ slug: record.slug }))
 }
 
 type SlugPageProps = { params: Promise<{ slug: string }> }

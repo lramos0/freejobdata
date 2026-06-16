@@ -1,13 +1,17 @@
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { EntityIntelligencePage } from "@/components/EntityIntelligencePage"
 import { buildMetadata } from "@/lib/seo"
-import { roleRecords, roles } from "@/lib/data"
+import { companyRecords, roleRecords } from "@/lib/data"
 import { getEntityPageContext } from "@/lib/metrics-hydration"
 import { shouldIndexPage } from "@/lib/thresholds"
 
+const staleJobRedirects: Record<string, string> = {
+  "df-retail-group": "/companies"
+}
+
 export function generateStaticParams() {
-  return roles.map((role) => ({ slug: role.slug }))
+  return roleRecords.filter((record) => shouldIndexPage(record.metrics)).map((record) => ({ slug: record.slug }))
 }
 
 type SlugPageProps = { params: Promise<{ slug: string }> }
@@ -29,6 +33,18 @@ export default async function JobPage({ params }: SlugPageProps) {
   const context = getEntityPageContext("role", slug, roleRecords)
 
   if (!context) {
+    const staleRedirect = staleJobRedirects[slug]
+
+    if (staleRedirect) {
+      permanentRedirect(staleRedirect)
+    }
+
+    const matchingCompany = companyRecords.find((record) => record.slug === slug)
+
+    if (matchingCompany) {
+      permanentRedirect(`/companies/${matchingCompany.slug}`)
+    }
+
     notFound()
   }
 

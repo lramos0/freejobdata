@@ -1,13 +1,17 @@
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { EntityIntelligencePage } from "@/components/EntityIntelligencePage"
 import { buildMetadata } from "@/lib/seo"
-import { companies, companyRecords } from "@/lib/data"
+import { companyRecords } from "@/lib/data"
 import { getEntityPageContext } from "@/lib/metrics-hydration"
 import { shouldIndexPage } from "@/lib/thresholds"
 
+const staleCompanyRedirects: Record<string, string> = {
+  "loch-ridge-dental-care": "/companies"
+}
+
 export function generateStaticParams() {
-  return companies.map((company) => ({ slug: company.slug }))
+  return companyRecords.filter((record) => shouldIndexPage(record.metrics)).map((record) => ({ slug: record.slug }))
 }
 
 type SlugPageProps = { params: Promise<{ slug: string }> }
@@ -29,6 +33,12 @@ export default async function CompanyPage({ params }: SlugPageProps) {
   const context = getEntityPageContext("company", slug, companyRecords)
 
   if (!context) {
+    const staleRedirect = staleCompanyRedirects[slug]
+
+    if (staleRedirect) {
+      permanentRedirect(staleRedirect)
+    }
+
     notFound()
   }
 

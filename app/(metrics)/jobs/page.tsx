@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { buildMetadata } from "@/lib/seo"
 import { roleRecords } from "@/lib/data"
+import { shouldIndexPage } from "@/lib/thresholds"
 
 export const metadata = buildMetadata({
   title: "Job Role Demand Intelligence",
@@ -9,6 +10,8 @@ export const metadata = buildMetadata({
 })
 
 export default function JobsPage() {
+  const indexableRoleRecords = roleRecords.filter((record) => shouldIndexPage(record.metrics))
+
   return (
     <>
       <section className="hero">
@@ -17,7 +20,7 @@ export default function JobsPage() {
         <p className="lede">Explore hiring demand by normalized job title, company concentration, salary coverage, and location mix.</p>
       </section>
       <section className="section grid">
-        {roleRecords.map((record) => (
+        {indexableRoleRecords.map((record) => (
           <Link className="card" href={`/jobs/${record.slug}`} key={record.slug}>
             <span className="pill">{record.metrics.activeJobs} active jobs</span>
             <h3>{record.name}</h3>
