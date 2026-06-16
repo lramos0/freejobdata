@@ -5,8 +5,7 @@ import Link from "next/link"
 import type { User } from "firebase/auth"
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth"
 import {
-  communityArticleBreakdown,
-  communityArticles,
+  editorialCommunityArticles,
   type CommunityArticle,
   type CommunityArticleType
 } from "@/lib/community-data"
@@ -138,7 +137,7 @@ export function CommunityHub() {
   const [externalArticlesRefreshKey, setExternalArticlesRefreshKey] = useState(0)
   const auth = useMemo(() => getFirebaseAuth(), [])
   const teamArticles = useMemo<CommunityFeedArticle[]>(
-    () => communityArticles.filter((article) => article.type === "team"),
+    () => editorialCommunityArticles.filter((article) => article.type === "team"),
     []
   )
 
@@ -240,7 +239,7 @@ export function CommunityHub() {
   const signedInArticles = useMemo<CommunityFeedArticle[]>(
     () =>
       user
-        ? [...externalArticles, ...communityArticles].sort((first, second) =>
+        ? [...externalArticles, ...editorialCommunityArticles].sort((first, second) =>
             second.publishedAt.localeCompare(first.publishedAt)
           )
         : teamArticles,

@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import type { User } from "firebase/auth"
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth"
-import { communityArticles, findCommunityArticle } from "@/lib/community-data"
+import { editorialCommunityArticles } from "@/lib/community-data"
 import { getFirebaseAuth, hasFirebaseConfig } from "@/lib/firebase"
 
 function articleIsoDate(date: string) {
@@ -81,8 +81,8 @@ function LockedNews({
 
 export function NewsIndexGate() {
   const { authBusy, authError, authReady, handleSignIn, user } = useSignedInNews()
-  const teamArticles = useMemo(() => communityArticles.filter((article) => article.type === "team"), [])
-  const articles = user ? communityArticles : teamArticles
+  const teamArticles = useMemo(() => editorialCommunityArticles.filter((article) => article.type === "team"), [])
+  const articles = user ? editorialCommunityArticles : teamArticles
 
   return (
     <>
@@ -117,7 +117,7 @@ export function NewsIndexGate() {
 
 export function NewsArticleGate({ slug }: { slug: string }) {
   const { authBusy, authError, authReady, handleSignIn, user } = useSignedInNews()
-  const foundArticle = findCommunityArticle(slug)
+  const foundArticle = editorialCommunityArticles.find((article) => article.id === slug)
   const article = user ? foundArticle : foundArticle?.type === "team" ? foundArticle : null
 
   if (!authReady) {
