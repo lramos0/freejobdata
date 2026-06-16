@@ -327,9 +327,17 @@
 
 .reddit-create-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   margin-top: 10px;
   gap: 8px;
+}
+
+.reddit-create-actions small {
+  margin-right: auto;
+  color: var(--rd-muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .reddit-btn-primary {
@@ -345,6 +353,12 @@
 
 .reddit-btn-primary:hover {
   filter: brightness(1.05);
+}
+
+.reddit-btn-primary:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+  opacity: 0.58;
 }
 
 .reddit-btn-ghost {
@@ -1231,6 +1245,10 @@
   .reddit-create-actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .reddit-create-actions small {
+    margin-right: 0;
   }
 
   .reddit-btn-primary,

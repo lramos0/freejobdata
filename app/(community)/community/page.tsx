@@ -1,13 +1,24 @@
 import { CommunityHub } from "@/components/community/CommunityHub"
+import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { buildMetadata } from "@/lib/seo"
 
 export const metadata = buildMetadata({
-  title: "Community Intelligence Platform",
+  title: "News & Community Intelligence",
   description:
-    "Explore FreeJobData community articles, automated team briefings, and a Deck.gl GIS map of job posting locations.",
+    "Explore FreeJobData job-market news, Reddit OSINT, S&P 500 company boards, and a map of job posting locations.",
   path: "/community"
 })
 
 export default function CommunityPage() {
-  return <CommunityHub />
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "News & Community", path: "/community" }
+        ]}
+      />
+      <CommunityHub />
+    </>
+  )
 }

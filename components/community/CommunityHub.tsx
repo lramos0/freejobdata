@@ -396,8 +396,8 @@ export function CommunityHub() {
           </div>
           <aside className="community-detail-panel">
             <CoverageDetails breakdown={visibleBreakdown} />
-            <SignalDistribution articles={articles} />
             <SentimentGauge sentiment={visibleSentiment} />
+            <SignalDistribution articles={articles} />
             <ContributorComposer role={role} signedIn={Boolean(user)} />
           </aside>
         </section>
@@ -508,10 +508,32 @@ function SignalDistribution({ articles }: { articles: CommunityFeedArticle[] }) 
   const teamWidth = Math.round((articles.filter((article) => article.type === "team").length / total) * 100)
   const externalWidth = Math.round((articles.filter((article) => article.externalUrl).length / total) * 100)
   const communityWidth = Math.max(0, 100 - teamWidth - externalWidth)
+  const sourceGroups = Object.values(
+    articles.reduce<Record<string, { label: string; count: number; className: "team" | "community" | "external" }>>(
+      (groups, article) => {
+        const isExternal = Boolean(article.externalUrl)
+        const label = isExternal
+          ? article.sourceName || article.author
+          : article.type === "team"
+            ? "FreeJobData Team"
+            : "Community Intel"
+        const key = `${isExternal ? "external" : article.type}:${label}`
+
+        groups[key] ??= {
+          label,
+          count: 0,
+          className: isExternal ? "external" : article.type
+        }
+        groups[key].count += 1
+        return groups
+      },
+      {}
+    )
+  ).sort((first, second) => second.count - first.count || first.label.localeCompare(second.label))
 
   return (
     <section className="community-side-card">
-      <h3>Source Distribution ↗</h3>
+      <h3>Source Distribution</h3>
       <p>Signals blend FreeJobData analysis, reviewed community intel, and signed-in source headlines.</p>
       <div className="distribution-bar" aria-label="Article source distribution">
         {teamWidth ? <span className="team" style={{ width: `${teamWidth}%` }}>Team {teamWidth}%</span> : null}
@@ -522,11 +544,14 @@ function SignalDistribution({ articles }: { articles: CommunityFeedArticle[] }) 
           <span className="external" style={{ width: `${externalWidth}%` }}>External {externalWidth}%</span>
         ) : null}
       </div>
-      <div className="source-columns">
-        {articles.slice(0, 5).map((article) => (
-          <span className={`source-token ${article.type}`} key={article.id}>
-            {article.externalUrl ? article.author.slice(0, 2).toUpperCase() : article.type === "team" ? "FJD" : article.author.slice(0, 2).toUpperCase()}
-          </span>
+      <div className="source-breakdown-list">
+        {sourceGroups.slice(0, 5).map((source) => (
+          <div className="source-breakdown-row" key={`${source.className}-${source.label}`}>
+            <span className={`source-dot ${source.className}`} />
+            <strong>{source.label}</strong>
+            <small>{source.count} signal{source.count === 1 ? "" : "s"}</small>
+            <em>{Math.round((source.count / total) * 100)}%</em>
+          </div>
         ))}
       </div>
     </section>

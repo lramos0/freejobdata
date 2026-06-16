@@ -23,7 +23,7 @@ export const SITE_SITELINKS: SiteHub[] = [
     label: "News & Community",
     path: "/community",
     description:
-      "OSINT-style hiring articles, Firebase-backed community roles, and a Deck.gl job posting location map."
+      "Job-market news, Reddit OSINT, S&P 500 company boards, and a job posting location map."
   }
 ]
 

@@ -97,20 +97,18 @@ export function NewsIndexGate() {
         </section>
       ) : null}
       {authReady && !user ? <LockedNews authBusy={authBusy} authError={authError} handleSignIn={handleSignIn} /> : null}
-      {authReady ? (
-        <section className="section grid">
-          {articles.map((article) => (
-            <Link className="card" href={`/news/${article.id}`} key={article.id}>
-              <span className="pill">{article.author} - {article.publishedAt}</span>
-              <h3>{article.title}</h3>
-              <p className="muted">{article.summary}</p>
-              <span className="muted">
-                {article.sources?.length ? `${article.sourceCount} cited sources` : `${article.sourceCount} corroborating postings`}
-              </span>
-            </Link>
-          ))}
-        </section>
-      ) : null}
+      <section className="section grid">
+        {articles.map((article) => (
+          <Link className="card" href={`/news/${article.id}`} key={article.id}>
+            <span className="pill">{article.author} - {article.publishedAt}</span>
+            <h3>{article.title}</h3>
+            <p className="muted">{article.summary}</p>
+            <span className="muted">
+              {article.sources?.length ? `${article.sourceCount} cited sources` : `${article.sourceCount} corroborating postings`}
+            </span>
+          </Link>
+        ))}
+      </section>
     </>
   )
 }

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useMemo, useState } from "react"
-import type { CSSProperties } from "react"
+import type { CSSProperties, FormEvent } from "react"
 import { sp500Companies, type Sp500Company } from "@/lib/sp500-forum-data"
 
 type ForumPost = {
@@ -144,6 +144,7 @@ function OutcomePanel({ company }: { company: Sp500Company }) {
   )
 }
 
+/*
 function CompanyForum({ company, onBack }: { company: Sp500Company; onBack: () => void }) {
   return (
     <>
@@ -243,9 +244,164 @@ function CompanyForum({ company, onBack }: { company: Sp500Company; onBack: () =
   )
 }
 
+*/
+function WritableCompanyForum({
+  company,
+  onBack,
+  onCreatePost,
+  posts
+}: {
+  company: Sp500Company
+  onBack: () => void
+  onCreatePost: (post: ForumPost) => void
+  posts: ForumPost[]
+}) {
+  const [title, setTitle] = useState("")
+  const [body, setBody] = useState("")
+  const [author, setAuthor] = useState("")
+
+  function handleCreatePost(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const nextTitle = title.trim()
+    const nextBody = body.trim()
+    if (!nextTitle || !nextBody) return
+
+    onCreatePost({
+      id: `${company.slug}-${Date.now()}`,
+      title: nextTitle,
+      body: nextBody,
+      author: author.trim() || "Local Contributor",
+      score: 1,
+      comments: 0,
+      createdAt: "just now"
+    })
+    setTitle("")
+    setBody("")
+    setAuthor("")
+  }
+
+  return (
+    <>
+      <div className="reddit-top">
+        <button className="reddit-back" type="button" onClick={onBack}>
+          All forums
+        </button>
+        <a href="https://jobdatapool.com/#api" className="reddit-back">
+          JobDataPool API
+        </a>
+      </div>
+      <div className="reddit-sub-header">
+        <div className="reddit-sub-banner" />
+        <div className="reddit-sub-bar">
+          <div className="forum-icon-slot reddit-sub-avatar">{logoHtml(company, 64)}</div>
+          <div className="reddit-sub-info">
+            <h2>
+              <button type="button" onClick={() => undefined}>
+                s/{company.slug}
+              </button>
+            </h2>
+            <p className="reddit-sub-meta">
+              <strong>{company.name}</strong> - Fortune #{company.rank} - {company.industry} - community hiring data
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="reddit-layout">
+        <div>
+          <OutcomePanel company={company} />
+          <form className="reddit-create" onSubmit={handleCreatePost}>
+            <h3>Start a company thread</h3>
+            <input
+              type="text"
+              placeholder={`What are you seeing at ${company.name}?`}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
+            <textarea
+              placeholder="Share interview loops, role changes, recruiter signals, salary notes, posting anomalies, or hiring outcomes."
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Display name"
+              value={author}
+              onChange={(event) => setAuthor(event.target.value)}
+            />
+            <div className="reddit-create-actions">
+              <small>Local draft mode. Firestore persistence can be wired into this form next.</small>
+              <button type="submit" className="reddit-btn-primary" disabled={!title.trim() || !body.trim()}>
+                Post thread
+              </button>
+            </div>
+          </form>
+          <div className="reddit-sort">
+            <button type="button" className="is-active">
+              Hot
+            </button>
+            <button type="button">New</button>
+            <button type="button">Top</button>
+          </div>
+          <div className="reddit-feed">
+            {posts.map((post) => (
+              <article className="reddit-post" key={post.id}>
+                <div className="reddit-votes">
+                  <button type="button" className="reddit-vote up" aria-label="Upvote">
+                    +
+                  </button>
+                  <span className="reddit-score">{post.score}</span>
+                  <button type="button" className="reddit-vote down" aria-label="Downvote">
+                    -
+                  </button>
+                </div>
+                <div className="reddit-post-main">
+                  <div className="reddit-post-meta">
+                    Posted by u/{post.author} - {post.createdAt}
+                  </div>
+                  <h3 className="reddit-post-title">{post.title}</h3>
+                  <div className="reddit-post-body">{post.body}</div>
+                  <div className="reddit-post-actions">
+                    <span className="reddit-comment-count">{post.comments} comments</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+        <aside className="reddit-sidebar">
+          <h4>About this forum</h4>
+          <p>Threads post immediately in the current session. Persisting them across visitors still needs Firestore writes.</p>
+          <p>
+            Job Data Pool on Reddit:{" "}
+            <a href="https://www.reddit.com/r/jobdatapool/" target="_blank" rel="noopener noreferrer">
+              r/jobdatapool
+            </a>
+          </p>
+          <p>
+            <strong>Company metadata</strong>
+            <br />
+            Industry: {company.industry}
+            <br />
+            Revenue: ${company.revenueMillions.toLocaleString()}M
+            <br />
+            Profit: ${company.profitMillions.toLocaleString()}M
+          </p>
+          <ul>
+            <li>Be useful</li>
+            <li>No doxxing</li>
+            <li>Share signal, not spam</li>
+          </ul>
+        </aside>
+      </div>
+    </>
+  )
+}
+
 export function Sp500JobsForum() {
   const [query, setQuery] = useState("")
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
+  const [postsByCompany, setPostsByCompany] = useState<Record<string, ForumPost[]>>({})
   const selectedCompany = selectedSlug ? sp500Companies.find((company) => company.slug === selectedSlug) : null
   const filteredCompanies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -265,7 +421,17 @@ export function Sp500JobsForum() {
     <div className="forum-view sp500-forum-view">
       <div id="forumRoot">
         {selectedCompany ? (
-          <CompanyForum company={selectedCompany} onBack={() => setSelectedSlug(null)} />
+          <WritableCompanyForum
+            company={selectedCompany}
+            onBack={() => setSelectedSlug(null)}
+            onCreatePost={(post) =>
+              setPostsByCompany((currentPosts) => ({
+                ...currentPosts,
+                [selectedCompany.slug]: [post, ...(currentPosts[selectedCompany.slug] ?? demoPosts(selectedCompany))]
+              }))
+            }
+            posts={postsByCompany[selectedCompany.slug] ?? demoPosts(selectedCompany)}
+          />
         ) : (
           <>
             <div className="reddit-top">
