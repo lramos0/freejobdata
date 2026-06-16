@@ -256,6 +256,46 @@ export const editorialCommunityArticles: CommunityArticle[] = [
     sourceCount: 8,
     coordinates: [-98.5795, 39.8283],
     tags: ["military hiring", "Iran ceasefire", "defense workforce", "recruiting", "force structure"]
+  },
+  {
+    id: "high-salary-jobs-are-not-overwhelmingly-stem",
+    title: "High-salary jobs are no longer speaking only in STEM",
+    summary:
+      "FreeJobData's high-salary context found 1,028 active listings with salary midpoints at or above $120,000.",
+    body: [
+      "The old map of high salary work was easy to draw in a career guide: follow the bright line through software, engineering, data, medicine, and finance. Learn the technical language. Move toward the lab, the terminal, the trading floor, the operating room. Somewhere near the end of that path, the six-figure job would appear like a lit building at the edge of town.",
+      "The current JobDataPool signal is less tidy. In FreeJobData's high-salary metrics view, the filter is mechanical: active listings with parseable salary ranges whose midpoint is at least $120,000. That screen produced 1,028 active postings in the June 16 snapshot, with a median salary midpoint of $192,381 and 100% salary coverage inside the context. If this were simply a STEM story, the role table should look like a parade of software architects, machine learning engineers, and data platform leads. It does not.",
+      "The first thing the table does is walk into a hospital. Veterans Health Administration alone accounts for 528 high-salary active postings, more than half of the context. Military Treatment Facilities under DHA adds 34. Defense Health Agency adds 11. The top roles include Clinical Psychologist, Physician Assistant (Primary Care), Staff Psychologist (BHIP), and Staff Psychologist - Primary Care-Mental Health Integration. The money is not only chasing code; it is chasing licensed judgment, clinical scarcity, and public systems that cannot function without credentialed care.",
+      "Then the table walks into a courthouse. The Executive Office for U.S. Attorneys and the Office of the U.S. Attorneys has 21 high-salary active listings. Assistant United States Attorney (Criminal), Assistant United States Attorney (Civil), and Attorney Advisor all appear among the fast-growing role rows, each with three active postings in the high-salary context. These are not STEM jobs in the common sense. They are institutional trust jobs: roles where the wage is attached to discretion, risk, interpretation, and consequence.",
+      "There is still engineering in the room. GENERAL ENGINEER and General Engineer, AST, Technical Management (Direct Hire) appear in the role list, with median salary points of $133,505 and $153,020. Technology also appears as an industry bucket with 111 high-salary active jobs. But the point is proportion. Engineering is present; it is not alone at the head table. The high-wage labor market looks less like a single technical ladder and more like a crowded control room where healthcare, law, government, defense, finance, marketing, and technical operations are all trying to hire adults who can carry liability.",
+      "Even the oddities in the taxonomy are useful. The high-salary industry table includes 0602 - Medical Officer with 418 active jobs, 0610 - Nurse with 62, 0905 - Attorney with 55, and 0180 - Psychology with 46. It also includes rough listing metadata such as 2000 Supply and 7405 - Bartending, which should be read cautiously rather than poetically. The lesson is not that bartending suddenly became the road to $192,000. The lesson is that job-market data arrives with classification noise, and the best reading comes from triangulating the employer, role, salary, and industry together.",
+      "The geography reinforces the same idea. Washington, DC shows 65 high-salary active listings. San Antonio has 20. Fargo has 16. Amarillo and Augusta each show 14. Houston has 13. Woodlawn, Maryland has 12. Columbia, Missouri has 11. This is not only the Bay Area or Seattle story. Some of the expensive work is attached to federal gravity, hospital networks, military medicine, regional care systems, and agencies that hire where the mission is, not where venture capital gathers.",
+      "Remote work barely shows up. The high-salary context has a 0.6% remote share, meaning the money in this slice is mostly tied to place. That is another break from the popular tech-era picture, where high pay and laptop mobility became culturally fused. The JobDataPool snapshot suggests a different high-wage world: exam rooms, federal offices, command structures, courtrooms, clinics, and specialized sites where presence is part of the job design.",
+      "This does not mean STEM stopped mattering. It means STEM became too small a word for the top of the labor market. Some high-salary jobs are technical because the work is mathematically or computationally difficult. Others are expensive because the labor supply is credentialed, the stakes are high, the employer is public, the role is hard to fill, or the cost of failure is enormous. A clinical psychologist, an assistant U.S. attorney, a physician assistant, a director of marketing, and a general engineer do not share one academic department. They share a labor-market condition: the employer needs someone specific, and not enough specific people are available.",
+      "The better phrase may be scarce judgment. High salary roles increasingly pay for judgment under constraint: diagnose, prosecute, manage, certify, lead, interpret, design, defend, comply, coordinate. Some of that judgment is STEM-shaped. Some of it is legal. Some of it is clinical. Some of it is organizational. The common feature is that the worker is not interchangeable, and the institution cannot automate its way around the vacancy quickly enough.",
+      "FreeJobData's read is that career advice has to catch up. The high-salary market is not a clean STEM monopoly, and it is not a clean anti-STEM reversal either. It is a mixed market for credentialed authority, public-sector durability, healthcare scarcity, specialized operations, and technical competence. The old advice said to chase the future by learning to code. The new data says the future also needs people who can sign the chart, argue the case, run the clinic, lead the campaign, certify the system, and take responsibility when the spreadsheet becomes a person."
+    ],
+    sources: [
+      {
+        label: "JobDataPool API and listings data",
+        href: "https://jobdatapool.com/#api"
+      },
+      {
+        label: "Bureau of Labor Statistics Occupational Employment and Wage Statistics",
+        href: "https://www.bls.gov/oes/"
+      }
+    ],
+    author: "FreeJobData Team",
+    type: "team",
+    publishedAt: "2026-06-16",
+    location: "United States",
+    role: "High-salary roles",
+    industry: "Labor market analytics",
+    factuality: "High Signal",
+    confidence: 84,
+    sourceCount: 2,
+    coordinates: [-98.5795, 39.8283],
+    tags: ["high salary jobs", "STEM", "healthcare hiring", "legal jobs", "JobDataPool"]
   }
 ]
 
