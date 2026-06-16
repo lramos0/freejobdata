@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Operational duration comparison</title>
+  <desc id="desc">Timeline comparing selected conflicts and campaigns by approximate duration, contrasting short high-intensity operations with prolonged wars.</desc>
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  <text x="92" y="48" fill="#0f172a" font-family="Arial" font-size="30" font-weight="700">Figure 4. Short campaigns coexist with long wars</text>
+  <rect x="92" y="84" width="980" height="500" fill="#ffffff" stroke="#dbe3ef"/>
+  <g font-family="Arial" font-size="16" fill="#0f172a">
+    <text x="112" y="130">Gulf War air/ground phase</text>
+    <text x="112" y="190">Kosovo air campaign</text>
+    <text x="112" y="250">Libya NATO campaign</text>
+    <text x="112" y="310">India-Pakistan clashes (2025)</text>
+    <text x="112" y="370">Israel-Iran exchanges</text>
+    <text x="112" y="430">Iraq war</text>
+    <text x="112" y="490">Afghanistan war</text>
+    <text x="112" y="550">Russia-Ukraine war</text>
+  </g>
+  <g fill="#1c6ee8">
+    <rect x="410" y="112" width="70" height="24"/><rect x="410" y="172" width="98" height="24"/><rect x="410" y="232" width="210" height="24"/>
+    <rect x="410" y="292" width="44" height="24"/><rect x="410" y="352" width="148" height="24"/>
+  </g>
+  <g fill="#dc2626">
+    <rect x="410" y="412" width="430" height="24"/><rect x="410" y="472" width="650" height="24"/><rect x="410" y="532" width="520" height="24"/>
+  </g>
+  <g fill="#475569" font-family="Arial" font-size="14">
+    <text x="400" y="614">weeks</text><text x="536" y="614">months</text><text x="760" y="614">years</text><text x="1010" y="614">decades</text>
+  </g>
+  <text x="92" y="682" fill="#475569" font-family="Arial" font-size="16">Approximate operational-duration timeline. The point is not that long wars disappeared; it is that planners face both tempo regimes.</text>
+</svg>

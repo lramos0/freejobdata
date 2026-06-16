@@ -1,77 +1,84 @@
 import Link from "next/link"
+import Image from "next/image"
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
-import { communityArticles, findCommunityArticle } from "@/lib/community-data"
+import { NewsArticleGate } from "@/components/community/NewsGate"
+import { communityArticles, findCommunityArticle, type CommunityArticle } from "@/lib/community-data"
 import { absoluteUrl, siteUrl } from "@/lib/seo"
 
 type PageProps = {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
-  return communityArticles.map((article) => ({ slug: article.id }))
-}
-
 function articleIsoDate(date: string) {
   return date.includes("T") ? date : `${date}T09:00:00-07:00`
+}
+
+function isPublicTeamArticle(article: CommunityArticle | undefined): article is CommunityArticle {
+  return Boolean(article?.type === "team" && article.body?.length)
+}
+
+export function generateStaticParams() {
+  return communityArticles
+    .filter((article) => isPublicTeamArticle(article))
+    .map((article) => ({ slug: article.id }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const article = findCommunityArticle(slug)
-  const title = article ? article.title : "Job Market News"
-  const description = article?.summary ?? "FreeJobData job market news and workplace analysis."
-  const path = `/news/${slug}`
+
+  if (!isPublicTeamArticle(article)) {
+    return {
+      title: "Job Market News",
+      description: "Signed-in FreeJobData community notes and job market analysis.",
+      robots: "noindex, nofollow"
+    }
+  }
+
+  const path = `/news/${article.id}`
   const url = absoluteUrl(path)
   const image = absoluteUrl(`${path}/image`)
-  const publishedTime = article ? articleIsoDate(article.publishedAt) : undefined
+  const publishedTime = articleIsoDate(article.publishedAt)
 
   return {
-    title,
-    description,
+    title: article.title,
+    description: article.summary,
     alternates: {
       canonical: url
     },
     robots: "index, follow, max-image-preview:large",
-    keywords: article?.tags,
+    keywords: article.tags,
     openGraph: {
-      title,
-      description,
+      title: article.title,
+      description: article.summary,
       url,
       siteName: "FreeJobData",
       type: "article",
       publishedTime,
       modifiedTime: publishedTime,
-      authors: article ? [article.author] : undefined,
-      section: article?.industry,
-      tags: article?.tags,
+      authors: [article.author],
+      section: article.industry,
+      tags: article.tags,
       images: [
         {
           url: image,
           width: 1200,
           height: 630,
-          alt: title
+          alt: article.title
         }
       ]
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: article.title,
+      description: article.summary,
       images: [image]
     }
   }
 }
 
-export default async function NewsArticlePage({ params }: PageProps) {
-  const { slug } = await params
-  const article = findCommunityArticle(slug)
-
-  if (!article) {
-    notFound()
-  }
-
+function PublicTeamArticle({ article }: { article: CommunityArticle }) {
   const paragraphs = article.body?.length ? article.body : [article.summary]
   const publishedIso = articleIsoDate(article.publishedAt)
   const articleUrl = absoluteUrl(`/news/${article.id}`)
@@ -145,6 +152,20 @@ export default async function NewsArticlePage({ params }: PageProps) {
         {paragraphs.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
+        {article.figures?.length ? (
+          <section className="news-figure-list" aria-labelledby="news-figures">
+            <h2 id="news-figures">Figures</h2>
+            {article.figures.map((figure, index) => (
+              <figure className="news-figure" key={figure.image}>
+                <Image src={figure.image} alt={figure.alt} width={1200} height={720} />
+                <figcaption>
+                  <strong>Figure {index + 1}. {figure.title}</strong>
+                  <span>{figure.caption}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </section>
+        ) : null}
         {article.sources?.length ? (
           <section className="news-source-list" aria-labelledby="news-sources">
             <h2 id="news-sources">Sources</h2>
@@ -165,4 +186,15 @@ export default async function NewsArticlePage({ params }: PageProps) {
       </section>
     </>
   )
+}
+
+export default async function NewsArticlePage({ params }: PageProps) {
+  const { slug } = await params
+  const article = findCommunityArticle(slug)
+
+  if (isPublicTeamArticle(article)) {
+    return <PublicTeamArticle article={article} />
+  }
+
+  return <NewsArticleGate slug={slug} />
 }

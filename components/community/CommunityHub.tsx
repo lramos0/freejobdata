@@ -120,12 +120,14 @@ export function CommunityHub() {
   const [user, setUser] = useState<User | null>(null)
   const [role, setRole] = useState<CommunityRole>("community")
   const firebaseConfigured = hasFirebaseConfig()
+  const [authReady, setAuthReady] = useState(!firebaseConfigured)
   const [authBusy, setAuthBusy] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [externalArticles, setExternalArticles] = useState<CommunityFeedArticle[]>([])
   const [externalArticlesLoading, setExternalArticlesLoading] = useState(false)
   const [externalArticlesError, setExternalArticlesError] = useState<string | null>(null)
   const auth = useMemo(() => getFirebaseAuth(), [])
+  const teamArticles = useMemo(() => communityArticles.filter((article) => article.type === "team"), [])
 
   useEffect(() => {
     if (!auth) {
@@ -142,11 +144,14 @@ export function CommunityHub() {
           setRole("community")
           setExternalArticles([])
           setExternalArticlesError(null)
+          setExternalArticlesLoading(false)
         }
         setAuthError(null)
       } catch {
         setRole("community")
         setAuthError("Signed in, but we could not read your community role yet.")
+      } finally {
+        setAuthReady(true)
       }
     })
   }, [auth])
@@ -198,17 +203,24 @@ export function CommunityHub() {
     return () => controller.abort()
   }, [user])
 
+  const signedInArticles = useMemo(
+    () =>
+      user
+        ? [...externalArticles, ...communityArticles].sort((first, second) =>
+            second.publishedAt.localeCompare(first.publishedAt)
+          )
+        : teamArticles,
+    [externalArticles, teamArticles, user]
+  )
   const articles = useMemo(
     () =>
       filter === "all"
-        ? [...(user ? externalArticles : []), ...communityArticles].sort((first, second) =>
-            second.publishedAt.localeCompare(first.publishedAt)
-          )
-        : communityArticles.filter((article) => article.type === filter),
-    [externalArticles, filter, user]
+        ? signedInArticles
+        : signedInArticles.filter((article) => article.type === filter),
+    [filter, signedInArticles]
   )
-  const breakdown = communityArticleBreakdown(communityArticles)
-  const totalArticleCount = breakdown.total + (user ? externalArticles.length : 0)
+  const breakdown = communityArticleBreakdown(signedInArticles)
+  const totalArticleCount = signedInArticles.length
   const visibleBreakdown = feedArticleBreakdown(articles)
   const visibleSentiment = sentimentBreakdown(articles)
 
@@ -305,6 +317,17 @@ export function CommunityHub() {
               </label>
             </div>
             <div className="community-article-list">
+              {!authReady ? (
+                <div className="community-feed-status">Checking your community session...</div>
+              ) : null}
+              {authReady && !user ? (
+                <div className="community-feed-status">
+                  Sign in to view community articles and current job-market headlines.{" "}
+                  <button className="button secondary" type="button" onClick={handleSignIn} disabled={authBusy}>
+                    {authBusy ? "Opening Google..." : "Sign in with Google"}
+                  </button>
+                </div>
+              ) : null}
               {user && filter === "all" && externalArticlesLoading ? (
                 <div className="community-feed-status">Loading current job-market headlines...</div>
               ) : null}

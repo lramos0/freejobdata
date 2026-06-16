@@ -5,6 +5,9 @@ import { SiteHubCards } from "@/components/SiteHubNav"
 import { MetricCard } from "@/components/MetricCard"
 import { buildMetadata, siteDescription, siteTitle } from "@/lib/seo"
 import { datasets, getHomeDashboard, reports } from "@/lib/data"
+import { loadLatestMetricsSnapshot } from "@/lib/load-metrics-snapshot"
+
+export const dynamic = "force-dynamic"
 
 export const metadata = buildMetadata({
   title: siteTitle,
@@ -12,8 +15,9 @@ export const metadata = buildMetadata({
   path: "/"
 })
 
-export default function HomePage() {
-  const dashboard = getHomeDashboard()
+export default async function HomePage() {
+  const snapshot = await loadLatestMetricsSnapshot()
+  const dashboard = getHomeDashboard(snapshot)
 
   return (
     <>

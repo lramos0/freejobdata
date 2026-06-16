@@ -14,6 +14,12 @@ export type CommunityArticleSnapshot = {
   title: string
   summary: string
   body?: string[]
+  figures?: {
+    title: string
+    image: string
+    alt: string
+    caption: string
+  }[]
   sources?: { label: string; href: string }[]
   author: string
   type: "team" | "community"

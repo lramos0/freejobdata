@@ -92,15 +92,17 @@ export function buildContentSitemap(): MetadataRoute.Sitemap {
     })
   )
 
-  const newsEntries = communityArticles.map((article) =>
-    entry(`/news/${article.id}`, {
-      lastModified: article.publishedAt,
-      changeFrequency: "weekly",
-      priority: 0.65
-    })
-  )
+  const teamNewsEntries = communityArticles
+    .filter((article) => article.type === "team" && article.body?.length)
+    .map((article) =>
+      entry(`/news/${article.id}`, {
+        lastModified: article.publishedAt,
+        changeFrequency: "weekly",
+        priority: 0.65
+      })
+    )
 
-  return [...datasetEntries, ...reportEntries, ...newsEntries]
+  return [...datasetEntries, ...reportEntries, ...teamNewsEntries]
 }
 
 export const SITEMAP_SECTIONS = [

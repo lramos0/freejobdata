@@ -13,7 +13,7 @@ import {
 } from "./data-seed"
 import { metricsSnapshotMeta } from "./load-metrics-snapshot"
 import { readMetricsSnapshot } from "./metrics-snapshot-runtime"
-import { mergeDatasetCounts, stripEntityRecord, type HomeDashboard } from "./metrics-snapshot"
+import { mergeDatasetCounts, stripEntityRecord, type HomeDashboard, type MetricsSnapshotFile } from "./metrics-snapshot"
 import { withSafeCompanyDomains } from "./domain-fallbacks"
 
 const roleTitleTerms =
@@ -82,8 +82,20 @@ export const industryRecords: EntityRecord[] = snapshot?.entities.industries?.le
   ? snapshot.entities.industries.map(stripEntityRecord)
   : seedIndustryRecords
 
-function companyRows(limit = 10) {
-  return companyRecords
+function snapshotCompanyRecords(nextSnapshot?: MetricsSnapshotFile | null): EntityRecord[] {
+  return nextSnapshot?.entities.companies?.length
+    ? nextSnapshot.entities.companies.map(stripEntityRecord).filter((record) => isUsableCompanyName(record.name))
+    : companyRecords
+}
+
+function snapshotRoleRecords(nextSnapshot?: MetricsSnapshotFile | null): EntityRecord[] {
+  return nextSnapshot?.entities.roles?.length
+    ? nextSnapshot.entities.roles.map(stripEntityRecord).filter((record) => isUsableRoleTitle(record.name))
+    : roleRecords
+}
+
+function companyRows(limit = 10, nextSnapshot?: MetricsSnapshotFile | null) {
+  return snapshotCompanyRecords(nextSnapshot)
     .filter((record) => isUsableCompanyName(record.name))
     .slice()
     .sort((a, b) => b.metrics.activeJobs - a.metrics.activeJobs)
@@ -96,8 +108,8 @@ function companyRows(limit = 10) {
     }))
 }
 
-function roleRows(limit = 10) {
-  return roleRecords
+function roleRows(limit = 10, nextSnapshot?: MetricsSnapshotFile | null) {
+  return snapshotRoleRecords(nextSnapshot)
     .filter((record) => isUsableRoleTitle(record.name))
     .slice()
     .sort((a, b) => b.metrics.growthWoW - a.metrics.growthWoW || b.metrics.activeJobs - a.metrics.activeJobs)
@@ -110,9 +122,9 @@ function roleRows(limit = 10) {
     }))
 }
 
-function cleanHomeDashboard(dashboard: HomeDashboard): HomeDashboard {
-  const cleanedCompanyRows = companyRows(dashboard.top_hiring_trends.length || 10)
-  const cleanedRoleRows = roleRows(dashboard.fast_growing_roles.length || 10)
+function cleanHomeDashboard(dashboard: HomeDashboard, nextSnapshot?: MetricsSnapshotFile | null): HomeDashboard {
+  const cleanedCompanyRows = companyRows(dashboard.top_hiring_trends.length || 10, nextSnapshot)
+  const cleanedRoleRows = roleRows(dashboard.fast_growing_roles.length || 10, nextSnapshot)
 
   return {
     ...dashboard,
@@ -121,16 +133,17 @@ function cleanHomeDashboard(dashboard: HomeDashboard): HomeDashboard {
   }
 }
 
-export function getHomeDashboard(): HomeDashboard {
-  if (snapshot?.dashboards?.home) {
-    return cleanHomeDashboard(snapshot.dashboards.home)
+export function getHomeDashboard(nextSnapshot = snapshot): HomeDashboard {
+  if (nextSnapshot?.dashboards?.home) {
+    return cleanHomeDashboard(nextSnapshot.dashboards.home, nextSnapshot)
   }
 
-  const totalActiveJobs = companyRecords.reduce((sum, record) => sum + record.metrics.activeJobs, 0)
-  const totalNewJobs7d = companyRecords.reduce((sum, record) => sum + record.metrics.newJobs7d, 0)
+  const fallbackCompanyRecords = snapshotCompanyRecords(nextSnapshot)
+  const totalActiveJobs = fallbackCompanyRecords.reduce((sum, record) => sum + record.metrics.activeJobs, 0)
+  const totalNewJobs7d = fallbackCompanyRecords.reduce((sum, record) => sum + record.metrics.newJobs7d, 0)
   const remoteShare =
-    companyRecords.reduce((sum, record) => sum + record.metrics.remoteShare, 0) /
-    Math.max(companyRecords.length, 1)
+    fallbackCompanyRecords.reduce((sum, record) => sum + record.metrics.remoteShare, 0) /
+    Math.max(fallbackCompanyRecords.length, 1)
 
   return {
     hero_metrics: [
@@ -150,8 +163,8 @@ export function getHomeDashboard(): HomeDashboard {
         detail: "Average across public seed records"
       }
     ],
-    top_hiring_trends: companyRows(8),
-    fast_growing_roles: roleRows(8)
+    top_hiring_trends: companyRows(8, nextSnapshot),
+    fast_growing_roles: roleRows(8, nextSnapshot)
   }
 }
 

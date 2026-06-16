@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">U.S. defense workforce stack</title>
+  <desc id="desc">Stacked bar showing active duty, reserve, National Guard, DoD civilians, and contractors as parts of the broader defense workforce.</desc>
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  <text x="92" y="48" fill="#0f172a" font-family="Arial" font-size="30" font-weight="700">Figure 6. A hiring drawdown can move work across the force stack</text>
+  <rect x="92" y="180" width="980" height="180" fill="#ffffff" stroke="#dbe3ef"/>
+  <rect x="92" y="180" width="294" height="180" fill="#1c6ee8"/>
+  <rect x="386" y="180" width="138" height="180" fill="#16a34a"/>
+  <rect x="524" y="180" width="112" height="180" fill="#0f766e"/>
+  <rect x="636" y="180" width="210" height="180" fill="#f59e0b"/>
+  <rect x="846" y="180" width="226" height="180" fill="#9333ea"/>
+  <g fill="#ffffff" font-family="Arial" font-size="18" font-weight="700" text-anchor="middle">
+    <text x="239" y="275">Active Duty</text><text x="455" y="275">Reserve</text><text x="580" y="275">Guard</text><text x="741" y="275">DoD civilians</text><text x="959" y="275">Contractors</text>
+  </g>
+  <g font-family="Arial" font-size="16" fill="#0f172a">
+    <text x="92" y="430">Hiring pressure can decline in one segment and rise in another.</text>
+    <text x="92" y="464">Example: fewer broad accessions, more cyber civilians, contractor logistics, depot maintenance, or reserve capacity.</text>
+  </g>
+  <g font-family="Arial" font-size="15" fill="#0f172a">
+    <rect x="92" y="520" width="18" height="14" fill="#1c6ee8"/><text x="118" y="533">Uniformed full-time force</text>
+    <rect x="330" y="520" width="18" height="14" fill="#16a34a"/><text x="356" y="533">Reserve component</text>
+    <rect x="552" y="520" width="18" height="14" fill="#0f766e"/><text x="578" y="533">National Guard</text>
+    <rect x="750" y="520" width="18" height="14" fill="#f59e0b"/><text x="776" y="533">Civilian workforce</text>
+    <rect x="970" y="520" width="18" height="14" fill="#9333ea"/><text x="996" y="533">Contracted support</text>
+  </g>
+  <text x="92" y="682" fill="#475569" font-family="Arial" font-size="16">Conceptual force-stack diagram. Segment widths are proportional approximations, not official end-strength counts.</text>
+</svg>

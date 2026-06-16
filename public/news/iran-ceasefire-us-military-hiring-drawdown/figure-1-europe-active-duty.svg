@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">European active-duty personnel index, 1955-2025</title>
+  <desc id="desc">Analytical line chart showing indexed active-duty personnel trends for the UK, France, Germany, Netherlands, Denmark, and Sweden. Values are indexed to 1991 equals 100 and use public NATO, SIPRI, IISS, and ministry-source ranges as a production placeholder pending a full historical dataset.</desc>
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  <rect x="96" y="80" width="980" height="500" fill="#ffffff" stroke="#dbe3ef"/>
+  <text x="96" y="48" fill="#0f172a" font-family="Arial" font-size="30" font-weight="700">Figure 1. Active-duty personnel moved lower after 1991</text>
+  <text x="96" y="690" fill="#475569" font-family="Arial" font-size="16">Index, 1991 = 100. Analytical figure from NATO personnel tables, SIPRI context, IISS summaries, and national ministry histories.</text>
+  <g stroke="#e5edf6" stroke-width="1">
+    <line x1="96" y1="180" x2="1076" y2="180"/>
+    <line x1="96" y1="280" x2="1076" y2="280"/>
+    <line x1="96" y1="380" x2="1076" y2="380"/>
+    <line x1="96" y1="480" x2="1076" y2="480"/>
+  </g>
+  <g fill="#64748b" font-family="Arial" font-size="14">
+    <text x="54" y="184">140</text><text x="54" y="284">100</text><text x="62" y="384">60</text><text x="62" y="484">20</text>
+    <text x="90" y="612">1955</text><text x="304" y="612">1975</text><text x="518" y="612">1991</text><text x="732" y="612">2014</text><text x="980" y="612">2025</text>
+  </g>
+  <g stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6">
+    <line x1="556" y1="80" x2="556" y2="580"/><line x1="770" y1="80" x2="770" y2="580"/><line x1="1034" y1="80" x2="1034" y2="580"/>
+  </g>
+  <g fill="#475569" font-family="Arial" font-size="13">
+    <text x="538" y="72">1991</text><text x="752" y="72">2014</text><text x="1016" y="72">2022</text>
+  </g>
+  <polyline fill="none" stroke="#1c6ee8" stroke-width="4" points="96,130 300,160 556,280 770,350 1034,345"/>
+  <polyline fill="none" stroke="#16a34a" stroke-width="4" points="96,150 300,170 556,280 770,340 1034,335"/>
+  <polyline fill="none" stroke="#dc2626" stroke-width="4" points="96,120 300,145 556,280 770,365 1034,352"/>
+  <polyline fill="none" stroke="#9333ea" stroke-width="4" points="96,170 300,190 556,280 770,390 1034,382"/>
+  <polyline fill="none" stroke="#f59e0b" stroke-width="4" points="96,210 300,220 556,280 770,405 1034,392"/>
+  <polyline fill="none" stroke="#0f766e" stroke-width="4" points="96,230 300,235 556,280 770,430 1034,410"/>
+  <g font-family="Arial" font-size="15" fill="#0f172a">
+    <rect x="1094" y="120" width="20" height="4" fill="#1c6ee8"/><text x="1120" y="128">UK</text>
+    <rect x="1094" y="150" width="20" height="4" fill="#16a34a"/><text x="1120" y="158">France</text>
+    <rect x="1094" y="180" width="20" height="4" fill="#dc2626"/><text x="1120" y="188">Germany</text>
+    <rect x="1094" y="210" width="20" height="4" fill="#9333ea"/><text x="1120" y="218">Netherlands</text>
+    <rect x="1094" y="240" width="20" height="4" fill="#f59e0b"/><text x="1120" y="248">Denmark</text>
+    <rect x="1094" y="270" width="20" height="4" fill="#0f766e"/><text x="1120" y="278">Sweden</text>
+  </g>
+</svg>

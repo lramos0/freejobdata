@@ -576,6 +576,10 @@ th {
   font-weight: 750;
 }
 
+.community-feed-status .button {
+  margin-left: 0.75rem;
+}
+
 .community-feed-status.warning {
   color: #b45309;
 }
@@ -672,6 +676,36 @@ th {
 .news-article-body p {
   font-size: 1.05rem;
   line-height: 1.75;
+}
+
+.news-figure-list {
+  display: grid;
+  gap: 1.4rem;
+  margin: 2rem 0;
+}
+
+.news-figure {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.news-figure img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+.news-figure figcaption {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.news-figure figcaption strong {
+  color: var(--ink);
 }
 
 .news-source-list {

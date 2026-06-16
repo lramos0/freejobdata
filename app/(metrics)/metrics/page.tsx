@@ -5,8 +5,9 @@ import { MetricCard } from "@/components/MetricCard"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { buildMetadata } from "@/lib/seo"
 import { companyRecords, getHomeDashboard, roleRecords } from "@/lib/data"
-import { metricsSnapshotMeta } from "@/lib/load-metrics-snapshot"
-import { hasMetricsSnapshot } from "@/lib/metrics-hydration"
+import { loadLatestMetricsSnapshot, metricsSnapshotMeta } from "@/lib/load-metrics-snapshot"
+
+export const dynamic = "force-dynamic"
 
 export const metadata = buildMetadata({
   title: "Job Market Metrics",
@@ -15,9 +16,10 @@ export const metadata = buildMetadata({
   path: "/metrics"
 })
 
-export default function MetricsPage() {
-  const dashboard = getHomeDashboard()
-  const snapshotMeta = metricsSnapshotMeta()
+export default async function MetricsPage() {
+  const snapshot = await loadLatestMetricsSnapshot()
+  const dashboard = getHomeDashboard(snapshot)
+  const snapshotMeta = metricsSnapshotMeta(snapshot)
 
   return (
     <>
@@ -34,7 +36,7 @@ export default function MetricsPage() {
           Explore active job counts, weekly growth, remote share, and role demand computed from the JobDataPool listings
           feed. Updated when the ingest cron runs.
         </p>
-        {snapshotMeta && hasMetricsSnapshot() ? (
+        {snapshotMeta ? (
           <p className="muted">
             Snapshot generated {new Date(snapshotMeta.generated_at).toLocaleString()} ·{" "}
             {snapshotMeta.global.active_jobs.toLocaleString()} active listings (ingest-job-data-pool)

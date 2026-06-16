@@ -149,6 +149,113 @@ export const editorialCommunityArticles: CommunityArticle[] = [
     sourceCount: 7,
     coordinates: [-98.5795, 39.8283],
     tags: ["remote work", "return to office", "badge data", "retention", "covid-era work"]
+  },
+  {
+    id: "iran-ceasefire-us-military-hiring-drawdown",
+    title: "After the Iran ceasefire, the U.S. military hiring question shifts from volume to mix",
+    summary:
+      "The ceasefire does not prove a recruiting drawdown is underway. It does make the manpower question sharper: how much hiring should support mass force structure, and how much should move toward technical, cyber, autonomous, logistics, and precision-strike roles?",
+    body: [
+      "The post-Iran-ceasefire debate is easy to overstate. There is not yet public evidence that the ceasefire itself caused a formal U.S. military recruiting drawdown, a hiring freeze, or a service-wide reduction in accession targets. The safer reading is narrower and more useful: a ceasefire lowers the immediate pressure for emergency expansion, and that gives defense planners more room to ask whether the next hiring cycle should emphasize headcount, specialized skills, or a different balance between the two.",
+      "That distinction matters because U.S. recruiting was not weak going into this moment. The Department of Defense reported that the services met or exceeded fiscal 2025 recruiting goals, with the Army, Navy, Air Force, Space Force, and Marine Corps all reaching their targets. In other words, the baseline is not a hollow force looking for any warm body. The baseline is a force that recently rebuilt recruiting momentum after several difficult years.",
+      "A ceasefire can still change the hiring conversation without changing the official target overnight. During an active regional crisis, the political and operational instinct is to preserve optionality: keep recruiters busy, protect end strength, refill delayed-entry pools, and avoid signaling weakness. After a ceasefire, the question becomes less about immediate mobilization and more about the composition of the next force. Should the marginal recruit fill a traditional billet, a cyber role, a maintenance pipeline, a drone unit, a logistics cell, a space operations team, or a civilian technical support function?",
+      "That is the real drawdown signal to watch. A modern military can reduce hiring pressure in some occupations while increasing it in others. Precision weapons, autonomous systems, artificial intelligence, ISR networks, cyber operations, and software-enabled logistics do not eliminate manpower, but they change where manpower has the highest value. A smaller hiring class in one field paired with a larger class in another can look like a drawdown from the outside while functioning as a reallocation inside the force.",
+      "The Iran ceasefire also revived the argument that some modern conflicts move through decisive phases faster than Cold War planners expected. The Gulf War, Kosovo, Libya, the 2025 India-Pakistan clashes, and the Israel-Iran exchanges are often cited as cases where precision strike, airpower, intelligence, and diplomatic pressure compressed timelines. That does not mean long wars are obsolete. Russia's invasion of Ukraine is the obvious counterexample: industrial capacity, ammunition stocks, mobilization depth, air defense, drones, trenches, and attrition still matter when a conflict does not end quickly.",
+      "For U.S. labor-market watchers, this means the drawdown thesis should be tested through job mix rather than headlines alone. A true post-ceasefire cooling pattern would show up in fewer broad enlistment pushes, softer recruiter demand, reduced contracting for surge support, or fewer postings tied to expeditionary operations. A transformation pattern would look different: continued demand for maintainers, analysts, software specialists, electronic warfare operators, logistics planners, shipyard labor, AI talent, and space or cyber personnel even if some conventional accession pressure eases.",
+      "Fiscal pressure is part of the story. Military personnel costs include pay, housing, healthcare, retirement, training, and veterans' obligations. The Congressional Budget Office has put total military compensation in the hundreds of billions of dollars when Defense Department and veterans' benefits are viewed together. Any serious drawdown argument therefore has a budget logic behind it, but savings are not automatic. Separations, retraining, recruiting pipeline changes, contractor substitution, and readiness risk can absorb some of the near-term fiscal benefit.",
+      "Europe's post-Cold War experience is a useful warning label. Many NATO countries reduced active-duty personnel after 1991 while investing in professionalization and technology. After Russia's 2014 seizure of Crimea and especially after the 2022 full-scale invasion of Ukraine, several had to revisit those assumptions. The lesson is not that drawdowns are always wrong. The lesson is that personnel reductions are only durable when they are matched by industrial capacity, reserves, alliances, logistics depth, and realistic assumptions about the wars a country might actually have to fight.",
+      "FreeJobData's read is that the ceasefire with Iran should not be treated as proof that the U.S. military is done hiring. It should be treated as a stress test for the old manpower model. The key labor-market question is shifting from 'How many people should the military recruit?' to 'Which jobs should the military stop filling by default, which should it protect, and which technical pipelines should it grow before the next crisis arrives?'",
+      "For now, the most defensible conclusion is cautious: the ceasefire creates political space for a hiring drawdown debate, not proof of a drawdown. The next signal will come from accession targets, recruiter staffing, defense civilian hiring, contractor solicitations, and occupational-level demand across cyber, ISR, logistics, maintenance, autonomous systems, and precision-strike support."
+    ],
+    figures: [
+      {
+        title: "European active-duty personnel index, 1955-2025",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-1-europe-active-duty.svg",
+        alt: "Line chart showing indexed active-duty personnel trends for the UK, France, Germany, Netherlands, Denmark, and Sweden from 1955 to 2025, with 1991, 2014, and 2022 annotated.",
+        caption:
+          "Indexed analytical view, 1991 = 100. The figure summarizes the post-Cold War personnel contraction pattern using public NATO, SIPRI, IISS, and national defense ministry reference ranges; it should be treated as a production visual summary, not a replacement for a full historical personnel table."
+      },
+      {
+        title: "Estimated cumulative personnel savings from post-Cold War reductions",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-2-personnel-savings.svg",
+        alt: "Stacked area chart estimating cumulative inflation-adjusted personnel savings from post-Cold War personnel reductions.",
+        caption:
+          "Scenario estimate showing how avoided personnel costs can accumulate over time. Transition costs, readiness risk, retraining, and contractor substitution can reduce near-term savings."
+      },
+      {
+        title: "NATO active-duty personnel versus defense spending",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-3-nato-personnel-spending.svg",
+        alt: "Scatter plot comparing NATO active-duty personnel and defense spending, with the United States highlighted as an outlier.",
+        caption:
+          "Comparative NATO labor-market frame. The United States remains an outlier in both spending and active-duty scale, which is why a U.S. hiring drawdown debate has different fiscal and strategic stakes than a small-country force review."
+      },
+      {
+        title: "Operational duration comparison",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-4-conflict-duration.svg",
+        alt: "Timeline comparing approximate operational durations of Gulf War, Kosovo, Libya, India-Pakistan 2025, Israel-Iran exchanges, Iraq, Afghanistan, and Russia-Ukraine.",
+        caption:
+          "Approximate duration timeline. Short, high-intensity campaigns support the precision-force argument, while Iraq, Afghanistan, and Russia-Ukraine remain warnings against assuming every war ends quickly."
+      },
+      {
+        title: "U.S. active-duty reduction scenarios and payroll savings",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-5-us-reduction-scenarios.svg",
+        alt: "Bar chart showing estimated annual payroll savings from 5 percent, 10 percent, 15 percent, and 20 percent U.S. active-duty personnel reductions.",
+        caption:
+          "Scenario model using a 1.3 million active-duty baseline and an $89,000 direct pay and allowance proxy per billet. The chart excludes separation costs, readiness costs, contractor replacement, and long-tail benefits."
+      },
+      {
+        title: "U.S. defense workforce stack",
+        image: "/news/iran-ceasefire-us-military-hiring-drawdown/figure-6-force-workforce-stack.svg",
+        alt: "Stacked bar showing active duty, reserve, National Guard, DoD civilians, and contractors as parts of the broader defense workforce.",
+        caption:
+          "Conceptual workforce diagram. A hiring drawdown in one segment can move work into civilians, contractors, reserve capacity, or technical specialty pipelines rather than reducing total labor demand."
+      }
+    ],
+    sources: [
+      {
+        label: "AP on the U.S.-Iran ceasefire framework and pending formal signing",
+        href: "https://apnews.com/article/77406473da38c6c126818610a219dc20"
+      },
+      {
+        label: "Department of Defense report on fiscal 2025 recruiting results",
+        href: "https://www.defense.gov/News/News-Stories/Article/Article/4365687/fy25-sees-best-recruiting-numbers-in-15-years/"
+      },
+      {
+        label: "Department of Defense recruiting task force update on the 2025 enlistment surge",
+        href: "https://www.defense.gov/News/News-Stories/Article/Article/4228479/recruitment-task-force-seeks-to-capitalize-on-2025-enlistment-surge/"
+      },
+      {
+        label: "Congressional Budget Office military personnel topic page",
+        href: "https://www.cbo.gov/topics/defense-and-national-security/military-personnel"
+      },
+      {
+        label: "Congressional Budget Office Atlas of Military Compensation, 2024",
+        href: "https://www.cbo.gov/publication/60886"
+      },
+      {
+        label: "NATO defence expenditure reports and personnel data",
+        href: "https://www.nato.int/en/what-we-do/introduction-to-nato/defence-expenditures-and-natos-5-commitment"
+      },
+      {
+        label: "NATO Defence Expenditure of NATO Countries, 2014-2025",
+        href: "https://www.nato.int/en/news-and-events/articles/news/2025/08/28/defence-expenditure-of-nato-countries-2014-2025"
+      },
+      {
+        label: "SIPRI Military Expenditure Database",
+        href: "https://milex.sipri.org/sipri"
+      }
+    ],
+    author: "FreeJobData Team",
+    type: "team",
+    publishedAt: "2026-06-15",
+    location: "United States",
+    role: "Military recruiting and defense labor markets",
+    industry: "Defense and national security",
+    factuality: "Developing",
+    confidence: 78,
+    sourceCount: 8,
+    coordinates: [-98.5795, 39.8283],
+    tags: ["military hiring", "Iran ceasefire", "defense workforce", "recruiting", "force structure"]
   }
 ]
 
