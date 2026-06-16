@@ -1,4 +1,4 @@
-const { parseCsvText } = require("./_shared/csv")
+const { parseCsvTextSelected } = require("./_shared/csv")
 const { LISTINGS_CSV_URL } = require("./_shared/fetch-listings")
 
 let getStore = null
@@ -14,6 +14,21 @@ try {
 const STORE_NAME = "freejobdata-downloads"
 const SOURCE_VERSION = "listings-june-2026"
 const MAX_LISTING_ROWS = 5000
+const DOWNLOAD_COLUMNS = [
+  "id",
+  "company_name",
+  "job_title",
+  "job_location",
+  "job_industries",
+  "industries",
+  "ingest_utc_date",
+  "ingestion_date",
+  "job_posted_date",
+  "validated_on",
+  "listing_closed",
+  "url",
+  "apply_link",
+]
 
 const DATASETS = {
   "free-job-postings-sample": {
@@ -29,14 +44,14 @@ const DATASETS = {
   "software-engineering-jobs": {
     title: "Software Engineering Jobs",
     kind: "listing-subset",
-    filter: (row) => /software|engineer|developer/i.test(`${row.job_title || ""} ${row.job_summary || ""}`),
+    filter: (row) => /software|engineer|developer/i.test(`${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`),
   },
   "ai-jobs": {
     title: "AI Jobs",
     kind: "listing-subset",
     filter: (row) =>
       /\bai\b|artificial intelligence|machine learning|ml engineer|data scientist/i.test(
-        `${row.job_title || ""} ${row.job_summary || ""} ${row.job_industries || ""}`
+        `${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`
       ),
   },
   "top-hiring-companies": {
@@ -251,7 +266,7 @@ async function fetchSourceRows() {
   if (!resp.ok) {
     throw new Error(`R2 listings CSV fetch failed (HTTP ${resp.status}) for ${LISTINGS_CSV_URL}`)
   }
-  return parseCsvText(await resp.text())
+  return parseCsvTextSelected(await resp.text(), DOWNLOAD_COLUMNS)
 }
 
 function connectBlobs(event) {

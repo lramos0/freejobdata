@@ -9,6 +9,7 @@ const path = require("path")
 const { execSync } = require("child_process")
 
 const OUTPUT = path.join(process.cwd(), "data", "metrics-snapshot.json")
+const MAX_REMOTE_AGE_HOURS = Number(process.env.METRICS_MAX_REMOTE_AGE_HOURS || 36)
 
 function hasSnapshot() {
   if (!fs.existsSync(OUTPUT)) return false
@@ -25,6 +26,13 @@ function isCsvSnapshot(snapshot) {
     snapshot?.source?.source_format === "csv" ||
     String(snapshot?.source?.data_url || "").toLowerCase().endsWith(".csv")
   )
+}
+
+function isFreshEnough(snapshot) {
+  const timestamp = Date.parse(snapshot?.generated_at || "")
+  if (!Number.isFinite(timestamp)) return false
+  const ageHours = (Date.now() - timestamp) / (60 * 60 * 1000)
+  return ageHours >= 0 && ageHours <= MAX_REMOTE_AGE_HOURS
 }
 
 async function tryFetch() {
@@ -49,6 +57,12 @@ async function tryFetch() {
   }
   if (!isCsvSnapshot(snapshot)) {
     console.warn("ensure-metrics-snapshot: fetched payload is not sourced from listings CSV")
+    return false
+  }
+  if (!isFreshEnough(snapshot)) {
+    console.warn(
+      `ensure-metrics-snapshot: fetched payload is stale (generated ${snapshot.generated_at}); running local ingest.`
+    )
     return false
   }
 

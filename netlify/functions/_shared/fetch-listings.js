@@ -1,10 +1,25 @@
-const { parseCsvText } = require("./csv")
+const { parseCsvTextSelected } = require("./csv")
 
 /** Canonical JobDataPool listings feed (R2 CSV with masked jobrd URLs). */
 const LISTINGS_CSV_URL =
   "https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026.csv"
 
 const JOBRD_ORIGIN = "https://jobdatapool.com"
+const METRICS_COLUMNS = [
+  "id",
+  "ingestion_date",
+  "job_title",
+  "company_name",
+  "job_location",
+  "job_industries",
+  "industries",
+  "job_base_pay_range",
+  "job_posted_date",
+  "country_code",
+  "ingest_utc_date",
+  "validated_on",
+  "listing_closed",
+]
 
 function isJobrdUrl(value) {
   return /^https:\/\/jobdatapool\.com\/jobrd\?id=[A-Za-z0-9_-]+$/i.test(String(value || "").trim())
@@ -45,7 +60,7 @@ async function fetchJobListings() {
     throw new Error(`Listings CSV fetch failed (HTTP ${resp.status}) for ${dataUrl}`)
   }
 
-  const items = parseCsvText(await resp.text()).map(ensureMaskedUrls)
+  const items = parseCsvTextSelected(await resp.text(), METRICS_COLUMNS)
   if (!items.length) {
     throw new Error("Listings CSV parsed successfully but returned 0 rows.")
   }
@@ -60,6 +75,7 @@ async function fetchJobListings() {
 
 module.exports = {
   LISTINGS_CSV_URL,
+  METRICS_COLUMNS,
   fetchJobListings,
   ensureMaskedUrls,
   isJobrdUrl,

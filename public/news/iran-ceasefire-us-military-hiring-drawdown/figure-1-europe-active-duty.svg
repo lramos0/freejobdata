@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
   <title id="title">European active-duty personnel index, 1955-2025</title>
-  <desc id="desc">Analytical line chart showing indexed active-duty personnel trends for the UK, France, Germany, Netherlands, Denmark, and Sweden. Values are indexed to 1991 equals 100 and use public NATO, SIPRI, IISS, and ministry-source ranges as a production placeholder pending a full historical dataset.</desc>
+  <desc id="desc">Analytical line chart showing indexed active-duty personnel trends for the UK, France, Germany, Netherlands, Denmark, and Sweden. Values are indexed to 1991 equals 100 and summarize public NATO, SIPRI, IISS, and ministry-source ranges.</desc>
   <rect width="1200" height="720" fill="#f8fafc"/>
   <rect x="96" y="80" width="980" height="500" fill="#ffffff" stroke="#dbe3ef"/>
   <text x="96" y="48" fill="#0f172a" font-family="Arial" font-size="30" font-weight="700">Figure 1. Active-duty personnel moved lower after 1991</text>

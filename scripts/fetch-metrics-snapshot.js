@@ -6,6 +6,7 @@ const fs = require("fs")
 const path = require("path")
 
 const OUTPUT = path.join(process.cwd(), "data", "metrics-snapshot.json")
+const MAX_REMOTE_AGE_HOURS = Number(process.env.METRICS_MAX_REMOTE_AGE_HOURS || 36)
 
 function resolveSnapshotUrl() {
   if (process.env.METRICS_SNAPSHOT_URL) {
@@ -23,6 +24,13 @@ function isCsvSnapshot(snapshot) {
     snapshot?.source?.source_format === "csv" ||
     String(snapshot?.source?.data_url || "").toLowerCase().endsWith(".csv")
   )
+}
+
+function isFreshEnough(snapshot) {
+  const timestamp = Date.parse(snapshot?.generated_at || "")
+  if (!Number.isFinite(timestamp)) return false
+  const ageHours = (Date.now() - timestamp) / (60 * 60 * 1000)
+  return ageHours >= 0 && ageHours <= MAX_REMOTE_AGE_HOURS
 }
 
 async function main() {
@@ -49,6 +57,10 @@ async function main() {
   }
   if (!isCsvSnapshot(snapshot)) {
     console.warn("fetch-metrics-snapshot: response is not sourced from listings CSV; keeping existing file.")
+    return
+  }
+  if (!isFreshEnough(snapshot)) {
+    console.warn(`fetch-metrics-snapshot: response is stale (generated ${snapshot.generated_at}); keeping existing file.`)
     return
   }
 
