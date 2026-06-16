@@ -404,7 +404,11 @@ function pickSources(source) {
 async function fetchSourceItems(sourceConfig, extraQuery) {
   const query = extraQuery ? `${sourceConfig.query} ${extraQuery}` : sourceConfig.query
   const xml = await fetchText(googleNewsFeedUrl(query))
-  return parseFeedItems(xml, sourceConfig)
+  const items = parseFeedItems(xml, sourceConfig)
+  if (!items.length) {
+    throw new Error("Feed returned no parseable RSS items.")
+  }
+  return items
 }
 
 async function buildPayload({ source, limit, days, extraQuery }) {
@@ -412,13 +416,26 @@ async function buildPayload({ source, limit, days, extraQuery }) {
   const failures = []
   const settled = await Promise.allSettled(sourceConfigs.map((sourceConfig) => fetchSourceItems(sourceConfig, extraQuery)))
   const items = []
+  const sourceDiagnostics = []
 
   settled.forEach((result, index) => {
+    const sourceConfig = sourceConfigs[index]
     if (result.status === "fulfilled") {
       items.push(...result.value)
+      sourceDiagnostics.push({
+        source: sourceConfig.id,
+        fetched: result.value.length,
+        failed: false,
+      })
     } else {
       failures.push({
-        source: sourceConfigs[index].id,
+        source: sourceConfig.id,
+        error: result.reason?.message || "Feed fetch failed.",
+      })
+      sourceDiagnostics.push({
+        source: sourceConfig.id,
+        fetched: 0,
+        failed: true,
         error: result.reason?.message || "Feed fetch failed.",
       })
     }
@@ -456,6 +473,13 @@ async function buildPayload({ source, limit, days, extraQuery }) {
     sources: sourceConfigs.map(({ id, name, homepage }) => ({ id, name, homepage })),
     articles,
     failures,
+    diagnostics: {
+      sourceDiagnostics,
+      fetchedItems: items.length,
+      rankedItems: rankedItems.length,
+      selectedItems: selectedItems.length,
+      droppedByScoreOrWindow: Math.max(0, items.length - rankedItems.length),
+    },
   }
 }
 

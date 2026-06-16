@@ -15,7 +15,7 @@ import { CommunityMap } from "./CommunityMap"
 import { RedditInsights } from "./RedditInsights"
 import { Sp500JobsForum } from "./Sp500JobsForum"
 
-type Filter = "all" | CommunityArticleType
+type Filter = "all" | CommunityArticleType | "external"
 type CommunityMode = "news" | "maps" | "sp500" | "reddit" | "settings"
 type CommunityFeedArticle = CommunityArticle & {
   externalUrl?: string
@@ -26,6 +26,14 @@ type JobMarketNewsResponse = {
   ok: boolean
   articles?: CommunityFeedArticle[]
   error?: string
+  cache?: string
+  diagnostics?: {
+    fetchedItems?: number
+    rankedItems?: number
+    selectedItems?: number
+    droppedByScoreOrWindow?: number
+    sourceDiagnostics?: { source: string; fetched: number; failed: boolean; error?: string }[]
+  }
 }
 
 function sourceLabel(type: CommunityArticleType) {
@@ -126,8 +134,13 @@ export function CommunityHub() {
   const [externalArticles, setExternalArticles] = useState<CommunityFeedArticle[]>([])
   const [externalArticlesLoading, setExternalArticlesLoading] = useState(false)
   const [externalArticlesError, setExternalArticlesError] = useState<string | null>(null)
+  const [externalArticlesDiagnostics, setExternalArticlesDiagnostics] = useState<JobMarketNewsResponse["diagnostics"] | null>(null)
+  const [externalArticlesRefreshKey, setExternalArticlesRefreshKey] = useState(0)
   const auth = useMemo(() => getFirebaseAuth(), [])
-  const teamArticles = useMemo(() => communityArticles.filter((article) => article.type === "team"), [])
+  const teamArticles = useMemo<CommunityFeedArticle[]>(
+    () => communityArticles.filter((article) => article.type === "team"),
+    []
+  )
 
   useEffect(() => {
     if (!auth) {
@@ -138,12 +151,14 @@ export function CommunityHub() {
       try {
         setUser(nextUser)
         if (nextUser) {
+          setFilter("all")
           const token = await nextUser.getIdTokenResult()
           setRole(roleFromClaims(token.claims))
         } else {
           setRole("community")
           setExternalArticles([])
           setExternalArticlesError(null)
+          setExternalArticlesDiagnostics(null)
           setExternalArticlesLoading(false)
         }
         setAuthError(null)
@@ -174,22 +189,41 @@ export function CommunityHub() {
           limit: "6",
           days: "21"
         })
-        const token = await activeUser.getIdToken()
+        if (externalArticlesRefreshKey > 0) {
+          params.set("refresh", "1")
+        }
+        const token = await activeUser.getIdToken(true)
         const response = await fetch(`/.netlify/functions/job-market-news?${params.toString()}`, {
           headers: {
+            Accept: "application/json",
             Authorization: `Bearer ${token}`
           },
+          credentials: "omit",
           signal: controller.signal
         })
-        const data = (await response.json()) as JobMarketNewsResponse
+        const contentType = response.headers.get("content-type") || ""
+        const data = contentType.includes("application/json")
+          ? ((await response.json()) as JobMarketNewsResponse)
+          : ({ ok: false, error: await response.text() } as JobMarketNewsResponse)
 
         if (!response.ok || !data.ok) {
           throw new Error(data.error || "Job market news failed.")
         }
 
         setExternalArticles(data.articles || [])
+        setExternalArticlesDiagnostics(data.diagnostics || null)
+        if (!data.articles?.length) {
+          const fetched = data.diagnostics?.fetchedItems ?? 0
+          const ranked = data.diagnostics?.rankedItems ?? 0
+          setExternalArticlesError(
+            fetched
+              ? `No matching external headlines passed the job-market filters (${ranked} ranked from ${fetched} fetched).`
+              : "No external headlines were returned by the configured sources."
+          )
+        }
       } catch (nextError) {
         if (controller.signal.aborted) return
+        setExternalArticlesDiagnostics(null)
         setExternalArticlesError(nextError instanceof Error ? nextError.message : "Job market news failed.")
       } finally {
         if (!controller.signal.aborted) {
@@ -201,9 +235,9 @@ export function CommunityHub() {
     loadExternalArticles(currentUser)
 
     return () => controller.abort()
-  }, [user])
+  }, [externalArticlesRefreshKey, user])
 
-  const signedInArticles = useMemo(
+  const signedInArticles = useMemo<CommunityFeedArticle[]>(
     () =>
       user
         ? [...externalArticles, ...communityArticles].sort((first, second) =>
@@ -213,13 +247,14 @@ export function CommunityHub() {
     [externalArticles, teamArticles, user]
   )
   const articles = useMemo(
-    () =>
-      filter === "all"
-        ? signedInArticles
-        : signedInArticles.filter((article) => article.type === filter),
+    () => {
+      if (filter === "all") return signedInArticles
+      if (filter === "external") return signedInArticles.filter((article) => Boolean(article.externalUrl))
+      return signedInArticles.filter((article) => article.type === filter && !article.externalUrl)
+    },
     [filter, signedInArticles]
   )
-  const breakdown = communityArticleBreakdown(signedInArticles)
+  const breakdown = feedArticleBreakdown(signedInArticles)
   const totalArticleCount = signedInArticles.length
   const visibleBreakdown = feedArticleBreakdown(articles)
   const visibleSentiment = sentimentBreakdown(articles)
@@ -295,7 +330,8 @@ export function CommunityHub() {
                 {[
                   ["all", "All", totalArticleCount],
                   ["team", "Team", breakdown.team],
-                  ["community", "Community", breakdown.community]
+                  ["community", "Community", breakdown.community],
+                  ["external", "External", breakdown.external]
                 ].map(([nextFilter, label, count]) => (
                   <button
                     className={filter === nextFilter ? "active" : ""}
@@ -328,11 +364,27 @@ export function CommunityHub() {
                   </button>
                 </div>
               ) : null}
-              {user && filter === "all" && externalArticlesLoading ? (
+              {user && (filter === "all" || filter === "external") && externalArticlesLoading ? (
                 <div className="community-feed-status">Loading current job-market headlines...</div>
               ) : null}
-              {user && filter === "all" && externalArticlesError ? (
-                <div className="community-feed-status warning">{externalArticlesError}</div>
+              {user && (filter === "all" || filter === "external") && externalArticlesError ? (
+                <div className="community-feed-status warning">
+                  {externalArticlesError}{" "}
+                  <button
+                    className="button secondary"
+                    disabled={externalArticlesLoading}
+                    onClick={() => setExternalArticlesRefreshKey((key) => key + 1)}
+                    type="button"
+                  >
+                    Retry headlines
+                  </button>
+                </div>
+              ) : null}
+              {user && (filter === "all" || filter === "external") && externalArticlesDiagnostics ? (
+                <div className="community-feed-status">
+                  External headline check: {externalArticlesDiagnostics.selectedItems ?? externalArticles.length} selected from{" "}
+                  {externalArticlesDiagnostics.fetchedItems ?? 0} fetched.
+                </div>
               ) : null}
               {articles.map((article) => (
                 <ArticleCard article={article} key={article.id} />
