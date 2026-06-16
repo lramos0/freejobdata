@@ -1,6 +1,7 @@
 const fs = require("fs")
 const path = require("path")
 
+const PUBLIC_FIREBASE_PROJECT_ID = "thehiringcafe"
 let bakedProjectId = ""
 
 try {
@@ -16,7 +17,8 @@ function firebaseProjectId() {
   return (
     String(process.env.FIREBASE_PROJECT_ID || "").trim() ||
     String(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "").trim() ||
-    bakedProjectId
+    bakedProjectId ||
+    PUBLIC_FIREBASE_PROJECT_ID
   )
 }
 
