@@ -206,7 +206,11 @@ export function CommunityHub() {
           : ({ ok: false, error: await response.text() } as JobMarketNewsResponse)
 
         if (!response.ok || !data.ok) {
-          throw new Error(data.error || "Job market news failed.")
+          throw new Error(
+            data.error
+              ? `Job market news failed (${response.status}): ${data.error}`
+              : `Job market news failed (${response.status}).`
+          )
         }
 
         setExternalArticles(data.articles || [])
