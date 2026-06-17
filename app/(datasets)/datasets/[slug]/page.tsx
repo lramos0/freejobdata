@@ -16,12 +16,18 @@ export function generateStaticParams() {
 
 type SlugPageProps = { params: Promise<{ slug: string }> }
 
+function datasetMetadataTitle(dataset: (typeof datasets)[number] | undefined) {
+  if (!dataset) return "Free Job Market Dataset"
+  if (dataset.slug === "top-hiring-companies") return "Top Hiring Companies Dataset"
+  return dataset.title
+}
+
 export async function generateMetadata({ params }: SlugPageProps) {
   const { slug } = await params
   const dataset = datasets.find((item) => item.slug === slug)
 
   return buildMetadata({
-    title: dataset ? dataset.title : "Free Job Market Dataset",
+    title: datasetMetadataTitle(dataset),
     description: dataset?.description ?? "Free job market dataset sample from FreeJobData.",
     path: `/datasets/${slug}`
   })

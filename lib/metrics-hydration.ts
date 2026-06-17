@@ -224,12 +224,16 @@ export function getEntityPageContext(entityType: EntityType, slug: string, recor
   }
 
   const breakdown = getEntityBreakdown(entityType, slug)
+  const relatedLinks = mergeRelatedLinks(
+    breakdown?.relatedLinks ?? buildFallbackRelatedLinks(entityType, record),
+    buildAdjacentEntityLinks(entityType, slug, records)
+  )
 
   return {
     record,
     primaryRows: breakdown?.primaryRows ?? buildFallbackPrimaryRows(record),
     secondaryRows: breakdown?.secondaryRows ?? buildFallbackSecondaryRows(record),
-    relatedLinks: breakdown?.relatedLinks ?? buildFallbackRelatedLinks(entityType, record)
+    relatedLinks
   }
 }
 
@@ -348,6 +352,47 @@ function buildFallbackRelatedLinks(entityType: EntityType, record: EntityRecord)
   }
 
   return [{ label: `${record.name} methodology`, href: "/methodology" }, ...linksByType[entityType]]
+}
+
+function entityBasePath(entityType: EntityType) {
+  const paths: Record<EntityType, string> = {
+    company: "/companies",
+    role: "/jobs",
+    location: "/locations",
+    industry: "/industries",
+    global: "/metrics"
+  }
+
+  return paths[entityType]
+}
+
+function buildAdjacentEntityLinks(entityType: EntityType, slug: string, records: EntityRecord[]) {
+  if (entityType === "global" || records.length < 2) return []
+
+  const index = records.findIndex((record) => record.slug === slug)
+  if (index < 0) return []
+
+  const basePath = entityBasePath(entityType)
+  const candidates = [records[index - 1], records[index + 1]].filter(
+    (record): record is EntityRecord => Boolean(record)
+  )
+
+  return candidates.map((record) => ({
+    label: `${record.name} hiring signal`,
+    href: `${basePath}/${record.slug}`
+  }))
+}
+
+function mergeRelatedLinks(
+  primaryLinks: { label: string; href: string }[],
+  secondaryLinks: { label: string; href: string }[]
+) {
+  const seen = new Set<string>()
+  return [...primaryLinks, ...secondaryLinks].filter((link) => {
+    if (seen.has(link.href)) return false
+    seen.add(link.href)
+    return true
+  })
 }
 
 function parseCsvPreview(csv: string): Record<string, string | number>[] {

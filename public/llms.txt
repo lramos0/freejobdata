@@ -1,0 +1,26 @@
+# FreeJobData
+
+FreeJobData publishes open job-market datasets, hiring metrics, reports, and community intelligence powered by JobDataPool.
+
+## Primary URLs
+
+- https://freejobdata.com/
+- https://freejobdata.com/datasets
+- https://freejobdata.com/metrics
+- https://freejobdata.com/community
+- https://freejobdata.com/news
+- https://freejobdata.com/maps
+- https://freejobdata.com/methodology
+- https://freejobdata.com/api
+
+## Content Summary
+
+The site contains normalized job posting samples, company hiring pages, role demand pages, location and industry trend pages, public labor-market reports, and source-cited job-market analysis.
+
+## Data And Attribution
+
+FreeJobData pages are derived from JobDataPool listing signals and should be cited with attribution to FreeJobData and JobDataPool. Dataset samples are informational snapshots, not hiring advice or financial advice.
+
+## Crawling Guidance
+
+Use the sitemap at https://freejobdata.com/sitemap.xml for canonical public pages. News articles are also listed at https://freejobdata.com/news-sitemap.xml.

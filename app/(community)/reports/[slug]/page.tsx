@@ -12,12 +12,18 @@ export function generateStaticParams() {
 
 type SlugPageProps = { params: Promise<{ slug: string }> }
 
+function reportMetadataTitle(report: (typeof reports)[number] | undefined) {
+  if (!report) return "Job Market Report"
+  if (report.slug === "top-hiring-companies") return "Top Hiring Companies Report"
+  return report.title
+}
+
 export async function generateMetadata({ params }: SlugPageProps) {
   const { slug } = await params
   const report = reports.find((item) => item.slug === slug)
 
   return buildMetadata({
-    title: report ? report.title : "Job Market Report",
+    title: reportMetadataTitle(report),
     description: report?.summary ?? "Job market report from FreeJobData.",
     path: `/reports/${slug}`
   })

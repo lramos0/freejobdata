@@ -145,6 +145,22 @@ export default async function MetricsPage({ searchParams, contextOverride }: Met
 
           <MarkdownAnnotation text={dashboard.annotations.overview} />
 
+          <section className="metrics-reading-note" aria-labelledby="metrics-reading-note-title">
+            <h3 id="metrics-reading-note-title">How to read this dashboard</h3>
+            <p>
+              Each context narrows the JobDataPool listing feed before computing active job volume, new postings,
+              week-over-week movement, remote share, salary coverage, and entity rankings. The tabs above preserve the
+              same metric definitions, which makes remote, government, healthcare, technology, internship, and
+              high-salary markets easier to compare without changing methodology between views.
+            </p>
+            <p>
+              Treat these numbers as hiring signals rather than a complete census. Job postings can close, repost, or
+              appear under different company and role labels, so the strongest reading comes from the full pattern:
+              volume, growth, salary coverage, location mix, and whether the same entities appear repeatedly across
+              the tables.
+            </p>
+          </section>
+
           <div className="metrics-widget-grid">
             {dashboard.hero_metrics.map((metric) => (
               <DashboardMetricCard key={metric.label} metric={metric} />

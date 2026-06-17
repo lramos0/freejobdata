@@ -225,6 +225,13 @@ p {
   gap: 0.5rem;
 }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -590,6 +597,24 @@ th {
   gap: 1rem;
 }
 
+.community-page-intro {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.community-page-intro h1 {
+  max-width: 760px;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  letter-spacing: -0.03em;
+}
+
+.community-page-intro p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+}
+
 .community-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.36fr);
@@ -677,6 +702,20 @@ th {
 .community-view-switch button.active {
   background: #0f172a;
   color: white;
+}
+
+.metrics-reading-note {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgb(248 250 252 / 0.82);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.metrics-reading-note p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .community-tabs button,

@@ -225,12 +225,12 @@ export const editorialCommunityArticles: CommunityArticle[] = [
         href: "https://www.defense.gov/News/News-Stories/Article/Article/4228479/recruitment-task-force-seeks-to-capitalize-on-2025-enlistment-surge/"
       },
       {
-        label: "Congressional Budget Office military personnel topic page",
-        href: "https://www.cbo.gov/topics/defense-and-national-security/military-personnel"
+        label: "GovInfo copy of CBO Atlas of Military Compensation, 2024",
+        href: "https://www.govinfo.gov/content/pkg/GOVPUB-Y10-PURL-gpo238416/pdf/GOVPUB-Y10-PURL-gpo238416.pdf"
       },
       {
-        label: "Congressional Budget Office Atlas of Military Compensation, 2024",
-        href: "https://www.cbo.gov/publication/60886"
+        label: "Department of Defense fiscal 2024 military composite pay rates",
+        href: "https://comptroller.war.gov/Portals/45/documents/rates/fy2024/2024_k.pdf"
       },
       {
         label: "NATO defence expenditure reports and personnel data",
