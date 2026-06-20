@@ -880,14 +880,14 @@ function buildDashboards(maps, entityBundles, snapshotDate, items, global) {
       detail: "Open rows in listings CSV (listing_closed false)",
     },
     {
-      label: "Company pages",
-      value: String(entityBundles.company.records.filter((r) => r.indexable).length),
-      detail: `Indexed when active jobs at least ${SEO_THRESHOLDS.companyMinActiveJobs}`,
+      label: "New jobs, 7d",
+      value: global.new_jobs_7d.toLocaleString(),
+      detail: "First seen in the last 7 days",
     },
     {
-      label: "Role pages",
-      value: String(entityBundles.role.records.filter((r) => r.indexable).length),
-      detail: `Indexed when active jobs at least ${SEO_THRESHOLDS.roleMinActiveJobs}`,
+      label: "Remote share",
+      value: `${global.remote_share}%`,
+      detail: "Remote or hybrid active postings",
     },
     {
       label: "Snapshot date",
