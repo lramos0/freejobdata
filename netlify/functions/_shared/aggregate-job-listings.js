@@ -912,7 +912,61 @@ function buildDashboards(maps, entityBundles, snapshotDate, items, global) {
   }
 }
 
-function buildDatasetsMeta(activeJobs, snapshotDate) {
+function latestSourceDateMs(items) {
+  const timestamps = items
+    .map(rowDate)
+    .filter(Boolean)
+    .map((date) => date.ts)
+    .filter(Number.isFinite)
+  return timestamps.length ? Math.max(...timestamps) : NaN
+}
+
+function weekStartFromDate(dateText) {
+  if (!dateText) return "unknown"
+  const date = new Date(`${dateText}T00:00:00Z`)
+  if (!Number.isFinite(date.getTime())) return "unknown"
+  const day = date.getUTCDay()
+  const offset = day === 0 ? -6 : 1 - day
+  date.setUTCDate(date.getUTCDate() + offset)
+  return date.toISOString().slice(0, 10)
+}
+
+function cappedDistinctCount(items, field, limit = 500) {
+  const values = new Set()
+  for (const row of items) {
+    values.add(slugify(row[field]) || "unknown")
+    if (values.size >= limit) break
+  }
+  return values.size
+}
+
+function matchingActiveCount(items, predicate, limit = 5000) {
+  let count = 0
+  for (const row of items) {
+    if (!isClosed(row) && predicate(row)) count += 1
+    if (count >= limit) break
+  }
+  return count
+}
+
+function buildDatasetsMeta(items, snapshotDate) {
+  const sourceMaxDateMs = latestSourceDateMs(items)
+  const activeRows = items.filter((row) => !isClosed(row))
+  const datasetCounts = {
+    "free-job-postings-sample": Math.min(activeRows.length, 5000),
+    "weekly-hiring-trends": new Set(items.map((row) => weekStartFromDate(rowDate(row)?.text))).size,
+    "top-hiring-companies": cappedDistinctCount(items, "company_name"),
+    "remote-jobs": matchingActiveCount(items, isRemote),
+    "software-engineering-jobs": matchingActiveCount(items, (row) =>
+      /software|engineer|developer/i.test(`${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`)
+    ),
+    "ai-jobs": matchingActiveCount(items, (row) =>
+      /\bai\b|artificial intelligence|machine learning|ml engineer|data scientist/i.test(
+        `${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`
+      )
+    ),
+    "location-demand": cappedDistinctCount(items, "job_location"),
+  }
   const templates = [
     ["free-job-postings-sample", "Free Job Postings Sample"],
     ["weekly-hiring-trends", "Weekly Hiring Trends"],
@@ -923,11 +977,11 @@ function buildDatasetsMeta(activeJobs, snapshotDate) {
     ["location-demand", "Location Demand"],
   ]
 
-  return templates.map(([slug, title], index) => ({
+  return templates.map(([slug, title]) => ({
     slug,
     title,
-    recordCount: Math.max(500, Math.round(activeJobs / (index + 2))),
-    updatedAt: snapshotDate,
+    recordCount: datasetCounts[slug] || 0,
+    updatedAt: Number.isFinite(sourceMaxDateMs) ? new Date(sourceMaxDateMs).toISOString().slice(0, 10) : snapshotDate,
   }))
 }
 
@@ -942,7 +996,7 @@ function buildSnapshotFromListings({ items, dataUrl, source, startedAt }) {
   const globalActive = global.active_jobs
 
   const dashboards = buildDashboards(maps, entities, snapshotDate, items, global)
-  const datasetCounts = buildDatasetsMeta(globalActive, snapshotDate)
+  const datasetCounts = buildDatasetsMeta(items, snapshotDate)
 
   const snapshot = {
     schema_version: "1",

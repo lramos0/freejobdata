@@ -2,12 +2,25 @@ import type { MetricsSnapshotFile } from "./metrics-snapshot"
 
 let cached: MetricsSnapshotFile | null | undefined
 
+const PROD_LISTINGS_CSV_URL =
+  "https://pub-e2c96b2fef074ee0809919335319632f.r2.dev/listings-june-2026.csv"
+
+function isProdListingsSnapshot(snapshot: MetricsSnapshotFile | null) {
+  return (
+    snapshot?.source?.source_format === "csv" &&
+    snapshot.source.data_url === PROD_LISTINGS_CSV_URL &&
+    snapshot.source.row_count > 0 &&
+    snapshot.global?.active_jobs > 0
+  )
+}
+
 function isValidMetricsSnapshot(value: unknown): value is MetricsSnapshotFile {
   const snapshot = value as MetricsSnapshotFile | null
   return Boolean(
     snapshot?.entities?.companies?.length &&
       snapshot?.dashboards?.home &&
-      snapshot.dashboards.contexts?.length
+      snapshot.dashboards.contexts?.length &&
+      isProdListingsSnapshot(snapshot)
   )
 }
 

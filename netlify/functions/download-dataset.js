@@ -54,6 +54,14 @@ const DATASETS = {
         `${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`
       ),
   },
+  internships: {
+    title: "Internships",
+    kind: "listing-subset",
+    filter: (row) =>
+      /\b(intern|internship|co-?op|student trainee|apprentice|early career|new grad|graduate)\b/i.test(
+        `${row.job_title || ""} ${row.job_industries || ""} ${row.industries || ""}`
+      ),
+  },
   "top-hiring-companies": {
     title: "Top Hiring Companies",
     kind: "company-rollup",

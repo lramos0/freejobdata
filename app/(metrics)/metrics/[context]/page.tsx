@@ -1,5 +1,6 @@
 import { permanentRedirect } from "next/navigation"
 import { findMetricsDashboardContext, getMetricsDashboardContexts } from "@/lib/data"
+import { loadLatestMetricsSnapshot } from "@/lib/load-metrics-snapshot"
 import { buildMetadata } from "@/lib/seo"
 import MetricsPage from "../page"
 
@@ -22,8 +23,9 @@ function dashboardTitle(label: string) {
 
 export async function generateMetadata({ params }: MetricsContextPageProps) {
   const { context } = await params
-  const dashboard = findMetricsDashboardContext(context)
-  const isKnownContext = getMetricsDashboardContexts().some((item) => item.slug === dashboard.slug)
+  const snapshot = await loadLatestMetricsSnapshot()
+  const dashboard = findMetricsDashboardContext(context, snapshot)
+  const isKnownContext = getMetricsDashboardContexts(snapshot).some((item) => item.slug === dashboard.slug)
   const isDefaultContext = dashboard.slug === "default"
   const title = isDefaultContext ? "Job Market Metrics" : dashboardTitle(dashboard.label)
   const description = isDefaultContext

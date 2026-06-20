@@ -44,6 +44,10 @@ export type MetricsSnapshotFile = {
     data_url: string
     row_count: number
     active_row_count: number
+    source_kind?: string
+    columns_used?: string[]
+    source_format?: string
+    masked_urls?: boolean
   }
   global: {
     active_jobs: number

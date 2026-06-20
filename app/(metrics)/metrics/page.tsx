@@ -3,9 +3,9 @@ import { DataTable } from "@/components/DataTable"
 import { JobDataPoolCTA } from "@/components/JobDataPoolCTA"
 import { BreadcrumbJsonLd } from "@/components/JsonLd"
 import { buildMetadata } from "@/lib/seo"
-import { companyRecords, findMetricsDashboardContext, getMetricsDashboardContexts, roleRecords } from "@/lib/data"
+import { findMetricsDashboardContext, getMetricsDashboardContexts } from "@/lib/data"
 import { loadLatestMetricsSnapshot, metricsSnapshotMeta } from "@/lib/load-metrics-snapshot"
-import type { DashboardMetric, MetricsDashboardContext } from "@/lib/metrics-snapshot"
+import type { DashboardMetric, MetricsDashboardContext, MetricsSnapshotFile } from "@/lib/metrics-snapshot"
 
 export const dynamic = "force-dynamic"
 
@@ -74,6 +74,10 @@ function DashboardTablePanel({
   )
 }
 
+function indexableEntityCount(snapshot: MetricsSnapshotFile | null, entityType: keyof MetricsSnapshotFile["entities"]) {
+  return snapshot?.entities?.[entityType]?.filter((record) => record.indexable).length ?? 0
+}
+
 export default async function MetricsPage({ searchParams, contextOverride }: MetricsPageProps) {
   const params = await searchParams
   const snapshot = await loadLatestMetricsSnapshot()
@@ -82,6 +86,8 @@ export default async function MetricsPage({ searchParams, contextOverride }: Met
   const contexts = getMetricsDashboardContexts(snapshot)
   const dashboard = findMetricsDashboardContext(requestedContext, snapshot)
   const generatedDate = snapshotMeta?.generated_at ? new Date(snapshotMeta.generated_at) : null
+  const companyPageCount = indexableEntityCount(snapshot, "companies")
+  const rolePageCount = indexableEntityCount(snapshot, "roles")
 
   return (
     <>
@@ -195,12 +201,12 @@ export default async function MetricsPage({ searchParams, contextOverride }: Met
           <Link className="card" href="/companies">
             <span className="pill">Companies</span>
             <h3>Company hiring intelligence</h3>
-            <p className="muted">Browse {companyRecords.length} company trend pages.</p>
+            <p className="muted">Browse {companyPageCount} company trend pages.</p>
           </Link>
           <Link className="card" href="/jobs">
             <span className="pill">Roles</span>
             <h3>Role demand pages</h3>
-            <p className="muted">Browse {roleRecords.length} normalized job title pages.</p>
+            <p className="muted">Browse {rolePageCount} normalized job title pages.</p>
           </Link>
           <Link className="card" href="/reports">
             <span className="pill">Reports</span>

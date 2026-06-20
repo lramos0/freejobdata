@@ -15,7 +15,12 @@ function hasSnapshot() {
   if (!fs.existsSync(OUTPUT)) return false
   try {
     const parsed = JSON.parse(fs.readFileSync(OUTPUT, "utf8"))
-    return Boolean(parsed?.entities?.companies?.length && isCsvSnapshot(parsed) && hasDashboardContexts(parsed))
+    return Boolean(
+      parsed?.entities?.companies?.length &&
+        isCsvSnapshot(parsed) &&
+        hasDashboardContexts(parsed) &&
+        isFreshEnough(parsed)
+    )
   } catch {
     return false
   }
